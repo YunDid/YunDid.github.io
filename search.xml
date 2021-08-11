@@ -6223,4 +6223,736 @@ bool try_lock_for(const chrono::duration&lt;Rep,Period&gt;&amp; time);
         <tag>Thread</tag>
       </tags>
   </entry>
+  <entry>
+    <title>C++ SBH堆管理机制</title>
+    <url>/2021/08/11/C++Primer/SBH/</url>
+    <content><![CDATA[<h1 id="Heap堆管理机制-SBH"><a href="#Heap堆管理机制-SBH" class="headerlink" title="Heap堆管理机制 - SBH"></a>Heap堆管理机制 - SBH</h1><h1 id="CRT-Strartup-code"><a href="#CRT-Strartup-code" class="headerlink" title="CRT Strartup code"></a>CRT Strartup code</h1><h2 id="Importance"><a href="#Importance" class="headerlink" title="Importance"></a>Importance</h2><blockquote>
+<p>正确初始化C run-time library,即CRT</p>
+<p>确保C++中静态对象的构造函数在正确的时机被调用</p>
+</blockquote>
+<h2 id="Entry-Point-Symbol"><a href="#Entry-Point-Symbol" class="headerlink" title="Entry-Point Symbol"></a>Entry-Point Symbol</h2><blockquote>
+<p> 使用一个 function name 作Entry-Point Symbol，指定startup code</p>
+<p>The funtion must be defined with the <strong>__stdcall</strong> calling convention(公约)</p>
+</blockquote>
+<ul>
+<li><p>mainCRTStartup</p>
+<blockquote>
+<p>控制台应用程序 Console</p>
+</blockquote>
+</li>
+<li><p>WinMainCRTStartup</p>
+<blockquote>
+<p>窗体应用程序 Windows</p>
+</blockquote>
+</li>
+<li><p>_DllMainCRTStartup</p>
+<blockquote>
+<p>动态链接库 Dll</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Example-mainCRTStartup"><a href="#Example-mainCRTStartup" class="headerlink" title="Example - mainCRTStartup()"></a>Example - mainCRTStartup()</h2><h3 id="Code-Abstract"><a href="#Code-Abstract" class="headerlink" title="Code Abstract"></a>Code Abstract</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mainCRTStartup</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="keyword">int</span> mainret;</span><br><span class="line"><span class="keyword">if</span>(!_heap_init(<span class="number">0</span>)) <span class="comment">// 1. heap初始化</span></span><br><span class="line">__try&#123;</span><br><span class="line">  _ioinit(); <span class="comment">//2. IO初始化  </span></span><br><span class="line">  _acmdln = (<span class="keyword">char</span>*)<span class="built_in">GetCommandLineA</span>(); <span class="comment">//3. 获取命令行参数</span></span><br><span class="line">_aenvptr = (cahr*)__crtGetEnvironmentStringsA(); <span class="comment">//4. 获取环境变量</span></span><br><span class="line">_setargv(); <span class="comment">//5. 字符串处理</span></span><br><span class="line">_setenvp(); <span class="comment">//6. 字符串处理</span></span><br><span class="line">_cinit(); <span class="comment">//7. data初始化</span></span><br><span class="line">__initenv = _environ; <span class="comment">//8. Main </span></span><br><span class="line">mainret = <span class="built_in">main</span>(__argc,__argv,_environ); <span class="comment">//8. Main 注意calling convention</span></span><br><span class="line"><span class="built_in">exit</span>(mainret); <span class="comment">//9. Exit</span></span><br><span class="line">  &#125;</span><br><span class="line">__eccept(...) &#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h1 id="System-heap-management-interface"><a href="#System-heap-management-interface" class="headerlink" title="System heap management interface"></a>System heap management interface</h1><blockquote>
+<p>HeapAlloc()</p>
+<p>VirtualAlloc()</p>
+</blockquote>
+<h1 id="Heap堆管理机制-VC6"><a href="#Heap堆管理机制-VC6" class="headerlink" title="Heap堆管理机制  -VC6"></a>Heap堆管理机制  -VC6</h1><h2 id="Small-Block-Heap-SBH"><a href="#Small-Block-Heap-SBH" class="headerlink" title="Small Block Heap - SBH"></a>Small Block Heap - SBH</h2><blockquote>
+<p>小块堆管理机制</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//__sbh_threshpld 设置内存门限，所需要的分配的内存小于该值，使用SBH机制为其分配内存</span></span><br><span class="line"><span class="comment">//__sbh_threshpld = 3F8，i.e. 1016</span></span><br><span class="line"><span class="comment">//_ioinit()对内存的分配操作中，自下而上的调用中分配的内存在不断的膨胀,在base()这里还未分配8byte的cookie首尾</span></span><br><span class="line"><span class="comment">//共1024 1K</span></span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">heap_alloc_base</span><span class="params">(...)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line"><span class="comment">//SBH堆管理机制</span></span><br><span class="line"><span class="comment">//从VirtualAlloc()取内存</span></span><br><span class="line"><span class="keyword">if</span>(size &lt;= __sbh_threshold) &#123;</span><br><span class="line">  pvReturn = __sbh_alloc_block(size);</span><br><span class="line">  <span class="keyword">if</span>(pvReturn) <span class="keyword">return</span> pvReturn;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="comment">//window提供的heap堆管理接口</span></span><br><span class="line"><span class="comment">//即调用HeapAlloc从_crtheap堆中取需要的内存</span></span><br><span class="line"><span class="keyword">if</span>(size==<span class="number">0</span>) size=<span class="number">1</span>;</span><br><span class="line">size=(size+...)&amp;~(...);</span><br><span class="line"><span class="keyword">return</span> <span class="built_in">HeapAlloc</span>(_crtheap,<span class="number">0</span>,size);</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/SBH/image-20210716152231050.png" alt="image-20210716152231050"></p>
+</blockquote>
+<h3 id="Memory-Mangement"><a href="#Memory-Mangement" class="headerlink" title="Memory Mangement"></a>Memory Mangement</h3><blockquote>
+<p>先向操作系统申请1M的内存，取其中 1/32 = 32K 部分</p>
+<p>再将32K分成8块4K的内存段，作为SBH内存管理的<strong>基本单元</strong></p>
+</blockquote>
+<h4 id="Debug首部"><a href="#Debug首部" class="headerlink" title="Debug首部"></a>Debug首部</h4><blockquote>
+<p>用于标识已分配内存的一些状态</p>
+<p>其中指针用于链接 <strong>Debug Heap</strong> 双向链表 ，使调试器掌握<strong>分配内存的状态</strong></p>
+<p>Debug Heap可以使物理上不连续的内存逻辑上有序</p>
+<p>fill 部分为用户可见部分，其余部分用户不可见</p>
+<p><img src="/images/SBH/image-20210716175659278.png" alt="image-20210716175659278"></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//内存块的标识符</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _NORMAL_BLOCK 1 <span class="comment">//用于应用程序的内存 / 用于APP的内存</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _CRT_BLOCK 2 <span class="comment">//用于CRT的内存</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> nNoMansLandSize 4</span></span><br><span class="line">tydef <span class="class"><span class="keyword">struct</span> _<span class="title">CrtMemBlockHeader</span> &#123;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> __<span class="title">CrtMemBlockHeader</span>* <span class="title">pBlockHeaderNext</span>;</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> __<span class="title">CrtMemBlockHeader</span>* <span class="title">pBlockHeaderPrev</span>;</span></span><br><span class="line"><span class="keyword">char</span>* szFileNAME; <span class="comment">//分配该区块代码所在的文件</span></span><br><span class="line"><span class="keyword">int</span> nLine; <span class="comment">//分配该区块的代码所在文件代码行</span></span><br><span class="line"><span class="keyword">size_t</span> nDataSize;</span><br><span class="line"><span class="keyword">int</span> nBlockUse; <span class="comment">//1 or 0 代表该内存的用途 CRT/APP</span></span><br><span class="line"><span class="keyword">long</span> lRequest;</span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> gap[nNoMansLandSize];</span><br><span class="line">&#125; _CrtMemBlockHeader;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h4 id="Header结构"><a href="#Header结构" class="headerlink" title="Header结构"></a>Header结构</h4><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> BITVEC;</span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tagHeader</span> &#123;</span></span><br><span class="line"> <span class="comment">//32bit hign 与 32bit low 会组合为一组64bit</span></span><br><span class="line"> BITVEC bitvEntryHi;</span><br><span class="line"> BITVEC bitvEntryLo;</span><br><span class="line"> BITVEC bitvCommit;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">void</span>* pHeadData;</span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">tagRegion</span>* <span class="title">pRegion</span>;</span></span><br><span class="line">&#125;HEADER,*PHEADER;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h4 id="heap-init-和-sbh-heap-init"><a href="#heap-init-和-sbh-heap-init" class="headerlink" title="_heap_init() 和 __sbh_heap_init()"></a>_heap_init() 和 __sbh_heap_init()</h4><blockquote>
+<p>CRT会先为自己建立一个**_crtheap**,然后从中分配SBH所需要的<strong>HEADERS,REGIONS</strong>作为<strong>管理之用</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> __cdecl _heap_init (<span class="keyword">int</span> mtflag) &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//初始化 Big-bloc heap</span></span><br><span class="line">    <span class="comment">//建立一个_crtheap堆专门用于SBH堆管理</span></span><br><span class="line">    <span class="keyword">if</span>((_crtheap = <span class="built_in">HeapCreat</span>(...))) &#123;</span><br><span class="line">        <span class="comment">//失败处理</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//初始化 Small-block heap</span></span><br><span class="line">    <span class="keyword">if</span>( __sbh_heap_init() == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//失败处理</span></span><br><span class="line">        <span class="built_in">HeapDestroy</span>(_crtheap);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> __cdecl __sbh_heap_init(<span class="keyword">void</span>) &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//从_crtheap中分配16个Header</span></span><br><span class="line">    <span class="keyword">if</span>(!(__sbh_pHeaderList = </span><br><span class="line">        <span class="built_in">HeapAlloc</span>( _crtheap , <span class="number">0</span> , <span class="number">16</span>*<span class="built_in"><span class="keyword">sizeof</span></span>(HEADER) )</span><br><span class="line">        )</span><br><span class="line">      )&#123;</span><br><span class="line">        <span class="keyword">return</span> FALSE;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//状态设置</span></span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> TURE;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h4 id="ioinit"><a href="#ioinit" class="headerlink" title="ioinit()"></a>ioinit()</h4><p>任何程序开始之前首次分配的内存大小为256byte，用于IO初始化</p>
+<blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//区分Debug模式的条件编译</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> _DEBUG</span></span><br><span class="line"><span class="comment">//非debug模式下，分配的内存快无额外的debug首部</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _malloc_crt malloc</span></span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line"><span class="comment">//c++编译器提供的macro宏</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _THISFILE __FILE__ <span class="comment">//指明当前代码所在的文件,__LINE__还可指出是第几行</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _malloc_crt(s) _malloc_dbg(s,_CRT_BLOCK,_THISFILE,__LINE__)</span></span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> __cdecl _ioinit(<span class="keyword">void</span>) &#123;</span><br><span class="line"></span><br><span class="line"> <span class="comment">//...</span></span><br><span class="line"> <span class="comment">//内存分配</span></span><br><span class="line"> <span class="comment">//IOINFO_ARRAY_ELTS = 32</span></span><br><span class="line">     <span class="comment">//sizeof(ioinfo) = 8</span></span><br><span class="line">    <span class="keyword">if</span>(</span><br><span class="line">        (pio = _malloc_crt(IOINFO_ARRAY_ELTS * <span class="built_in"><span class="keyword">sizeof</span></span>(ioinfo))</span><br><span class="line">      ) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">//..</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">   </span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h4 id="heap-alloc-dbg"><a href="#heap-alloc-dbg" class="headerlink" title="heap_alloc_dbg()"></a>heap_alloc_dbg()</h4><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//...</span></span><br><span class="line">blockSize = <span class="built_in"><span class="keyword">sizeof</span></span>(_CrtMemBlockHeader) + nSize + nNoMansLandSize;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">pHead = (_CrtMemBlockHeader*)_heap _alloc_base(blockSize); <span class="comment">//获取内存,并使用pHead指针临时指向</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//设置Debug Heap</span></span><br><span class="line"><span class="comment">//将各heap内存块串为一个双向链表</span></span><br><span class="line"><span class="comment">//static  _CrtMemBlockHeader* pfirst</span></span><br><span class="line"><span class="comment">//static  _CrtMemBlockHeader* plast</span></span><br><span class="line"><span class="keyword">if</span>(pfirst) &#123;</span><br><span class="line">    pfirst -&gt; pBlockHeaderPrev = pHead;</span><br><span class="line">&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">    plast = pHead;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">pHead -&gt; pBlockHeaderPrev = <span class="literal">NULL</span>;</span><br><span class="line">pHead -&gt; pBlockHeaderNext = pfirst;</span><br><span class="line"><span class="comment">//... Debug首部的其余6个属性的设置</span></span><br><span class="line"></span><br><span class="line">pfirst = pHead;</span><br><span class="line"></span><br><span class="line"><span class="comment">//fill in gap</span></span><br><span class="line"><span class="built_in">memset</span>((<span class="keyword">void</span>*)pHead-&gt;gap,_bNoMansLandFill,nNoMansLandSize);</span><br><span class="line"><span class="built_in">memset</span>((<span class="keyword">void</span>*)( <span class="built_in">pbData</span>(pHead) + nSize ),_bNoMansLandFill,nNoMansLandSize);</span><br><span class="line"><span class="comment">//fill data</span></span><br><span class="line"><span class="built_in">memset</span>((<span class="keyword">void</span>*)<span class="built_in">pbData</span>(pHead),_bCleanLandFill,nNoMansLandSize);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> (<span class="keyword">void</span>*)<span class="built_in">pbData</span>(pHead);</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h4 id="sbh-alloc-block"><a href="#sbh-alloc-block" class="headerlink" title="__sbh_alloc_block()"></a>__sbh_alloc_block()</h4><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//BYTES_PER_PARA = 16</span></span><br><span class="line"><span class="comment">//添加cookie以及将内存大小调整到16的边界</span></span><br><span class="line">sizeEntry = (intSize + <span class="number">2</span>*<span class="built_in"><span class="keyword">sizeof</span></span>(<span class="keyword">int</span>) + (BYTES_PER_PARA<span class="number">-1</span>) &amp;~ (BYTES_PER_PARA<span class="number">-1</span>) )</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h4 id="sbh-alloc-new-region"><a href="#sbh-alloc-new-region" class="headerlink" title="__sbh_alloc_new_region()"></a>__sbh_alloc_new_region()</h4><h5 id="Logic-memory"><a href="#Logic-memory" class="headerlink" title="Logic memory"></a><strong>Logic memory</strong></h5><blockquote>
+<p>REGION -&gt; GROUP -&gt; LISTHEAD -&gt; ENTRY</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">unsigned</span> <span class="keyword">int</span> BITVEC;</span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tagRegion</span> &#123;</span></span><br><span class="line"> <span class="comment">//判断链表是否链接了区块，无法从空链表切割分配内存</span></span><br><span class="line"> <span class="keyword">int</span> indGroupUse;</span><br><span class="line"> <span class="keyword">char</span> cntRegionSize[<span class="number">64</span>];</span><br><span class="line"> <span class="comment">//32组64bit的组合，组成一个64bit的变量</span></span><br><span class="line"> BITVEC bitvEntryHi[<span class="number">32</span>];</span><br><span class="line"> BITVEC bitvEntryLo[<span class="number">32</span>];</span><br><span class="line"></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">tagGroup</span> <span class="title">grpHeadList</span>[32];</span></span><br><span class="line">&#125;REGION,*PREGION;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tagGroup</span> &#123;</span></span><br><span class="line"> <span class="keyword">int</span> cntEntries;</span><br><span class="line"></span><br><span class="line"> <span class="comment">//自上而下第一个双向链表链接(维护)的区块大小范围为0~16B</span></span><br><span class="line"> <span class="comment">//第64个即63号双向链表链接(维护)的区块大小范围为&gt;1KB and &lt; 8KB</span></span><br><span class="line"> <span class="comment">// sign = Esize / 16 - 1</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tagListHead</span> <span class="title">listHead</span>[64];</span></span><br><span class="line">&#125;GROUP,*PGROUP;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tagListHead</span> &#123;</span></span><br><span class="line"></span><br><span class="line"> <span class="comment">//用于组织管理大小相同的内存块</span></span><br><span class="line"> <span class="comment">//将大小相同的内存块串成双向链表</span></span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">tagEntry</span>* <span class="title">pEntryNext</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">tagEntry</span>* <span class="title">pEntryPrev</span>;</span></span><br><span class="line"></span><br><span class="line">&#125;LISTHEAD,*PLISTHEAD;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tagEntry</span> &#123;</span></span><br><span class="line"></span><br><span class="line"> <span class="keyword">int</span> sizeFont;</span><br><span class="line"> <span class="class"><span class="keyword">struct</span> <span class="title">tagEntry</span>* <span class="title">pEntryNext</span>;</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">tagEntry</span>* <span class="title">pEntryPrev</span>;</span></span><br><span class="line"></span><br><span class="line">&#125;ENTRY,*PENTRY;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p><img src="/images/SBH/image-20210717083105261.png" alt="image-20210717083105261"></p>
+</blockquote>
+<h5 id="Physics-memory"><a href="#Physics-memory" class="headerlink" title="Physics memory"></a><strong>Physics memory</strong></h5><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">p = <span class="built_in">VirtualAlloc</span>(<span class="number">0</span>,<span class="number">1</span>M,MEM_RESERVE,...);</span><br><span class="line"><span class="comment">//向操作系统申请1M的内存</span></span><br><span class="line"><span class="built_in">VirtualAlloc</span>(addr,<span class="number">32</span>K,MEM_RESERVE,...)</span><br><span class="line"><span class="comment">//取其中 1/32 = 32K 部分</span></span><br><span class="line"><span class="comment">//再将32K分成8块小内存，通过 LISTHEADER 管理 4K=4096 的小内存段</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/SBH/image-20210717083750367.png" alt="image-20210717083750367"></p>
+<p><strong>强制分隔字段</strong></p>
+<p>每段大小虽然为4k = 4096 但是其中8byte为<strong>强制分隔字段</strong></p>
+<blockquote>
+<p>在所有分配的内存全部回收时候，防止SBH内存管理的<strong>基本单元</strong>被合并</p>
+<p>每个基本单元逻辑上由双向链表链接不连续，但是实际物理上是连续的内存</p>
+</blockquote>
+<p><strong>保留字段</strong></p>
+<p>4096 - 8 = 4088 所以需<strong>保留字段</strong>确保内存为<strong>16的整数倍</strong></p>
+<p><strong>可分配内存</strong></p>
+<p>而只有4080可以用于分配内存因为有8byte的cookie字段指明长度</p>
+<p><code>注意:</code></p>
+<ol>
+<li>只要是<strong>可分配内存/空闲内存</strong>，一定有两个<strong>临时指针</strong>，该指针用于LISTHEAD<strong>登记管理</strong></li>
+<li><strong>临时指针</strong>内存段被分配后，会被<strong>覆盖</strong>，不在用于LISTHEAD<strong>登记管理</strong></li>
+</ol>
+<p><img src="/images/SBH/image-20210717092728471.png" alt="image-20210717092728471"></p>
+</blockquote>
+<h3 id="Memory-Allocate"><a href="#Memory-Allocate" class="headerlink" title="Memory Allocate"></a>Memory Allocate</h3><blockquote>
+<ol>
+<li>从由各LISTHEAD管理的所有空闲内存中找出与申请内存<strong>最接近</strong>的空闲内存进行分配</li>
+<li>从空闲内存中切割分配用户所需要的的内存，并通过逐级的回溯<strong>最终返回</strong>给用户指向该分配内存的指针<strong>pUser</strong></li>
+</ol>
+<blockquote>
+<p>pUser当前所指位置并不是当前分配后的pUser的实际指向，该指针会最终移动到该位置</p>
+</blockquote>
+<ol start="3">
+<li><p><strong>重新登记</strong>管理剩余内存的LISTHEAD</p>
+<blockquote>
+<p>ec0 / 10h &gt; 1K 所以仍由63号LISTHEAD管理该剩余内存区块</p>
+</blockquote>
+</li>
+</ol>
+<p><img src="/images/SBH/image-20210717103245856.png" alt="image-20210717103245856"></p>
+</blockquote>
+<h5 id="For-the-first-time-distribution"><a href="#For-the-first-time-distribution" class="headerlink" title="For the first time distribution"></a>For the first time distribution</h5><blockquote>
+<p>初始时仅由最后一个LISTHEAD管理8段基本单元，其余LISTHEAD为空</p>
+<p>因此首次分配内存时申请的130h内存由最后一个listhead组织管理分配，而不是对应的 130h / 10h = 19 18号链表链接</p>
+<p><img src="/images/SBH/image-20210717103332926.png" alt="image-20210717103332926"></p>
+</blockquote>
+<h3 id="Memory-recycle"><a href="#Memory-recycle" class="headerlink" title="Memory recycle"></a>Memory recycle</h3><blockquote>
+<p>free(pCurrnet);</p>
+</blockquote>
+<h5 id="Merge"><a href="#Merge" class="headerlink" title="Merge"></a>Merge</h5><blockquote>
+<p><strong>每一次</strong>回收都将与该回收内存<strong>紧邻的</strong>空闲内存(cookie尾末位为0)进行合并</p>
+<p>下一空闲内存的cookie头 = pCurrnet - 4 + 300</p>
+<p>上一空闲内存的cookie尾 = pCurrnet - 8</p>
+<p>通过判断cookie的首尾末位状态来判断是否进行合并</p>
+<blockquote>
+<p>若只有cookie头或cookie尾，则只能朝反向单向检测内存块的状态</p>
+</blockquote>
+<p><img src="/images/SBH/image-20210717175327399.png" alt="image-20210717175327399"></p>
+</blockquote>
+<h5 id="Re-Register"><a href="#Re-Register" class="headerlink" title="Re-Register"></a>Re-Register</h5><blockquote>
+<p><strong>重新登记</strong>管理该回收内存的LISTHEAD,将该内存”插入”到对应LISTHEAD链接的双向链表中</p>
+<blockquote>
+<p>更新空闲内存的临时指针指向，将空闲内存”挂”到对应LISTHEAD管理的双向链表上</p>
+</blockquote>
+<p><img src="/images/SBH/image-20210717104533693.png" alt="image-20210717104533693"></p>
+</blockquote>
+<blockquote>
+<p>b0内存分配出去后，该部分剩余190h内存需要重新又相应双向链表管理</p>
+<p><img src="/images/SBH/image-20210717105611949.png" alt="image-20210717105611949"></p>
+</blockquote>
+<h1 id="Verification"><a href="#Verification" class="headerlink" title="Verification"></a>Verification</h1><h2 id="Blocks-allocated-befor-main"><a href="#Blocks-allocated-befor-main" class="headerlink" title="Blocks allocated befor main()"></a>Blocks allocated befor main()</h2><blockquote>
+<p>在进入main()之前，CRT已经进行一些内存分配的工作，例如环境变量的内存分配</p>
+</blockquote>
+<blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">mainCRTStartup</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">    verification</span><br><span class="line">  _acmdln = (<span class="keyword">char</span>*)<span class="built_in">GetCommandLineA</span>(); <span class="comment">//3. 获取命令行参数</span></span><br><span class="line">  <span class="comment">//_acmdln为argv格式</span></span><br><span class="line">  </span><br><span class="line">  _aenvptr = (cahr*)__crtGetEnvironmentStringsA(); <span class="comment">//4. 获取所有环境变量</span></span><br><span class="line">  </span><br><span class="line">    _setargv(); <span class="comment">//5. 字符串处理</span></span><br><span class="line">  <span class="comment">//为_acmdln分配内存</span></span><br><span class="line">  _setenvp(); <span class="comment">//6. 字符串处理</span></span><br><span class="line">  <span class="comment">//为pointer table分配内存</span></span><br><span class="line">    <span class="comment">//10个字符串与10个指针(连续)，共11次内存分配操作</span></span><br><span class="line">  </span><br><span class="line">  __initenv = _environ;</span><br><span class="line">  <span class="comment">// _environ是指指向环境变量字符串的指针</span></span><br><span class="line">  <span class="comment">//环境变量字符串使用指针指向</span></span><br><span class="line">  <span class="comment">//因此 _environ 为pointer to pointer table</span></span><br><span class="line">  </span><br><span class="line">  mainret = <span class="built_in">main</span>(__argc,__argv,_environ);</span><br><span class="line">  <span class="comment">//calling convention约束下，这里的参数无所谓有无</span></span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">  &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+<p>例一VC6操作系统有10个环境变量需要分配内存</p>
+<p><img src="/images/SBH/image-20210718090713992.png" alt="image-20210718090713992"></p>
+<ol>
+<li><p>以argv格式获取命令行参数</p>
+<blockquote>
+<p>argv格式(假设argc为n)</p>
+<ul>
+<li><p>连续n个指针,指向n个字符串</p>
+</li>
+<li><p>连续n个字符串，每个字符串以’/0’结束</p>
+</li>
+<li><p>\0结尾，4byte</p>
+</li>
+</ul>
+</blockquote>
+</li>
+<li><p>使用一大段内存获取操作系统中的<strong>所有环境变量</strong></p>
+</li>
+<li><p>通过10个独立的字符串内存段和1个指针内存段来管理所有环境变量</p>
+<blockquote>
+<p>每个内存段添加debug首部等便于调试器管理</p>
+</blockquote>
+</li>
+<li><p>设置命令行参数内存</p>
+</li>
+</ol>
+<p><img src="/images/SBH/image-20210718092728650.png" alt="image-20210718092728650"></p>
+</blockquote>
+<h1 id="Heap堆管理机制-VC10"><a href="#Heap堆管理机制-VC10" class="headerlink" title="Heap堆管理机制 -VC10"></a>Heap堆管理机制 -VC10</h1><blockquote>
+<p>VC10下并没有取消SBH堆管理机制，而是内置到了HeapAlloc操作系统下</p>
+</blockquote>
+<blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">hMyHeap = <span class="built_in">HeapCreate</span>(<span class="number">0</span>,<span class="number">4096</span>,<span class="number">0</span>); <span class="comment">// 例中 hMyHeap=39000</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>LISTHEAD</strong></p>
+<p>hMyHeap指向的地址中，在offset = 178 即 39178地址处，有128 对 LISTHEAD指针 4byte为一个指针</p>
+<blockquote>
+<p>每对LISTHEAD指针分别以<strong>双向链表</strong>登记，管理着不同的状态的内存</p>
+<p>free[0]: &gt;1K</p>
+<blockquote>
+<p>初始登记管理所有基本单元</p>
+</blockquote>
+<p>free[127]: 0~8 byte</p>
+<blockquote>
+<p>初始两个指针都指向自己，表示该LISTHEAD连接的链表为空，无法分配内存</p>
+</blockquote>
+</blockquote>
+<p><strong>基本单元</strong></p>
+<p>cookie首部</p>
+<blockquote>
+<p>8byte</p>
+<p>不仅记录本区块的内存长度，还记录前一个区块的内存长度</p>
+<p>长度单位为8byte</p>
+<blockquote>
+<p>free[size] 可与 LISTHEAD 直接建立管理对应关系</p>
+</blockquote>
+<p>首区块 前一区块内存长度字段值为 0303 有特殊意义</p>
+</blockquote>
+<p>debug 尾部</p>
+<blockquote>
+<p>16byte</p>
+</blockquote>
+<p><img src="/images/SBH/image-20210718101857874.png" alt="image-20210718101857874"></p>
+</blockquote>
+<h2 id="Verification-1"><a href="#Verification-1" class="headerlink" title="Verification"></a>Verification</h2><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">lp = <span class="built_in">HeapAlloc</span>(hMyheap,HEAP_ZERO_MEMORY,<span class="number">1024</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="/images/SBH/image-20210718103359627.png" alt="image-20210718103359627"></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>C++Primer</category>
+      </categories>
+      <tags>
+        <tag>C++Primer</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Design mode / 设计模式</title>
+    <url>/2021/08/11/C++Primer/Design_Mode/</url>
+    <content><![CDATA[<h1 id="Design-mode-设计模式"><a href="#Design-mode-设计模式" class="headerlink" title="Design mode / 设计模式"></a>Design mode / 设计模式</h1><blockquote>
+<p>没有任何稳定点的软件体系结构，设计模式没有意义</p>
+<p>任何点都稳定的软件体系结构，设计模式也没有意义</p>
+<p>从变化点和稳定点中寻找隔离点，分离后管理变化</p>
+<blockquote>
+<p>编译时稳定复用</p>
+<p>运行时<strong>多态</strong>变化</p>
+</blockquote>
+</blockquote>
+<h1 id="设计原则"><a href="#设计原则" class="headerlink" title="设计原则"></a>设计原则</h1><blockquote>
+<p><strong>应对变化 提高复用</strong></p>
+<p><strong>二进制单位意义</strong>的复用，而不是<strong>代码片段级</strong>粘贴性质的复用</p>
+<p>二进制单位意义的复用无需重新编译部署</p>
+</blockquote>
+<h2 id="依赖倒置原则-DIP"><a href="#依赖倒置原则-DIP" class="headerlink" title="依赖倒置原则 -DIP"></a>依赖倒置原则 -DIP</h2><blockquote>
+<p>变化应该依赖于稳定，稳定不应该依赖于变化</p>
+<p>高层模块不应该依赖于低层模块，二者都可以依赖于抽象</p>
+<p>抽象不应该依赖于实现，实现细节可以依赖于抽象</p>
+</blockquote>
+<h2 id="开闭原则-OCP"><a href="#开闭原则-OCP" class="headerlink" title="开闭原则 -OCP"></a>开闭原则 -OCP</h2><blockquote>
+<p>对<strong>拓展开放</strong>，对<strong>修改封闭</strong></p>
+<p>类模块应该是可拓展的，但是不可修改</p>
+<p>类应该以<strong>拓展方式</strong>来应对需求变化，而不是更改类中代码</p>
+</blockquote>
+<h2 id="单一职责原则-SRP"><a href="#单一职责原则-SRP" class="headerlink" title="单一职责原则 -SRP"></a>单一职责原则 -SRP</h2><blockquote>
+<p>一个类应该<strong>仅有一个</strong>引起它变化的原因</p>
+<p>桥模式</p>
+</blockquote>
+<h2 id="接口隔离原则-ISP"><a href="#接口隔离原则-ISP" class="headerlink" title="接口隔离原则 -ISP"></a>接口隔离原则 -ISP</h2><blockquote>
+<p>不能让用户依赖于他们不使用的方法</p>
+<p>就是一个类实现了多个接口，其中用户用不到的方法使用private等限定隔离</p>
+</blockquote>
+<h2 id="里氏替换原则-LSP"><a href="#里氏替换原则-LSP" class="headerlink" title="里氏替换原则 -LSP"></a>里氏替换原则 -LSP</h2><blockquote>
+<p>子类型必须能替换掉它的父类型 IS-A</p>
+<p>能使用父类对象的方法子类也能适用</p>
+<p>假设有两个类，一个是Base类，另一个是Child类，并且Child类是Base的子类。那么一个方法如果可以接受一个基类对象b的话:method1(Base b)那么它必然可以接受一个子类的对象method1(Child c)</p>
+</blockquote>
+<h2 id="组合优先于继承"><a href="#组合优先于继承" class="headerlink" title="组合优先于继承"></a>组合优先于继承</h2><blockquote>
+<p>组合为黑盒复用，继承是白盒复用</p>
+<p>继承一定程度上破坏了封装性，子类父类耦合度高</p>
+</blockquote>
+<h2 id="封装变化点"><a href="#封装变化点" class="headerlink" title="封装变化点"></a>封装变化点</h2><blockquote>
+<p>一侧变化，一侧稳定</p>
+</blockquote>
+<h2 id="针对接口编程，而不是针对实现编程"><a href="#针对接口编程，而不是针对实现编程" class="headerlink" title="针对接口编程，而不是针对实现编程"></a>针对接口编程，而不是针对实现编程</h2><blockquote>
+<p>不将变量类型声明为某个特定的具体类，而是声明为某个接口</p>
+<p>客户程序无需知道对象的具体类型，只需要知道对象所具有的接口</p>
+</blockquote>
+<h1 id="模式分类"><a href="#模式分类" class="headerlink" title="模式分类"></a>模式分类</h1><h2 id="从目的来看"><a href="#从目的来看" class="headerlink" title="从目的来看"></a>从目的来看</h2><ul>
+<li>创建型模式</li>
+</ul>
+<blockquote>
+<p>将对象的部分创建工作<strong>延迟</strong>到子类</p>
+<p>应对需求变化为<strong>对象创建具体类型的实现</strong>带来的冲击</p>
+</blockquote>
+<ul>
+<li>结构型模式</li>
+</ul>
+<blockquote>
+<p>通过类继承或者对象组合的<strong>结构</strong></p>
+<p>应对需求变化对<strong>对象结构</strong>带来的冲击</p>
+</blockquote>
+<ul>
+<li>行为型模式</li>
+</ul>
+<blockquote>
+<p><strong>划分</strong>对象间的<strong>职责</strong></p>
+<p>应对需求变化为<strong>多个交互对象</strong>带来的冲击</p>
+</blockquote>
+<h2 id="封装变化"><a href="#封装变化" class="headerlink" title="封装变化"></a>封装变化</h2><p>​        ↓</p>
+<h1 id="“组件协作”模式"><a href="#“组件协作”模式" class="headerlink" title="“组件协作”模式"></a>“组件协作”模式</h1><blockquote>
+<p>通过<strong>晚期绑定</strong></p>
+<p>实现<strong>框架</strong>与<strong>应用程序</strong>之间的松耦合</p>
+</blockquote>
+<h2 id="Template-Method-模式"><a href="#Template-Method-模式" class="headerlink" title="Template Method 模式"></a>Template Method 模式</h2><h3 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p><strong>稳定</strong>操作框架结构，而其中某些子步骤有<strong>变化需求</strong></p>
+<p>无法实现任务和整体结构的<strong>同步</strong></p>
+</blockquote>
+<h3 id="Defination"><a href="#Defination" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>Template Method 操作算法骨架(稳定) -&gt; 骨架中某些步骤<strong>延迟</strong>到子类实现(变化)</p>
+<p>从而子类可以<strong>复用</strong>该<strong>算法骨架</strong>或者<strong>重写</strong>算法中<strong>某些特定步骤</strong></p>
+<p><strong>延迟</strong></p>
+<blockquote>
+<p>定义一个虚函数让子类实现or重写，从而支持子类变化</p>
+</blockquote>
+</blockquote>
+<h3 id="Code-and-UML"><a href="#Code-and-UML" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// libiary and Application</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">libiary</span> &#123;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="comment">//稳定的函数不能声明为虚函数</span></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">template_method</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//...</span></span><br><span class="line">		<span class="built_in">var</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//若不声明为虚函数，无法调用子类的构造函数</span></span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">libiary</span>() &#123;&#125;;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="comment">//变化的函数声明为虚函数</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">var</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span> :</span> <span class="keyword">public</span> libiary &#123;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">var</span><span class="params">()</span> </span>&#123;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//多态调用</span></span><br><span class="line">	libiary* p = <span class="keyword">new</span> <span class="built_in">Application</span>();</span><br><span class="line">	p-&gt;<span class="built_in">template_method</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>-</p>
+<p><img src="/images/Design_Mode/image-20210719103524862.png" alt="image-20210719103524862"></p>
+</blockquote>
+<h2 id="Strategy-模式"><a href="#Strategy-模式" class="headerlink" title="Strategy 模式"></a>Strategy 模式</h2><h3 id="Motivation-1"><a href="#Motivation-1" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>一个类中包含多个算法</p>
+<p>不再使用的算法成为性能负担</p>
+<p>拓展算法时必须于类中添加代码，违反开闭原则</p>
+<p>客户程序段存在 **if-else散弹 ** <strong>-</strong>  <strong>bad smell</strong></p>
+</blockquote>
+<h3 id="Defination-1"><a href="#Defination-1" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p><strong>单独封装</strong>算法，算法可相互替换 </p>
+<p>算法可独立于客户程序(稳定)而变化(<strong>拓展，子类化</strong>)</p>
+<p>用<strong>拓展的方式</strong>面对<strong>算法方面</strong>需求的变化</p>
+</blockquote>
+<h3 id="Code-and-UML-1"><a href="#Code-and-UML-1" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 税率计算</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210721084310497.png" alt="image-20210721084310497"></p>
+</blockquote>
+<h2 id="Observer-模式"><a href="#Observer-模式" class="headerlink" title="Observer 模式"></a>Observer 模式</h2><h3 id="Motivation-2"><a href="#Motivation-2" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>过于紧密的通知依赖关系不能很好地抵御变化</p>
+<p>违反依赖倒置原则</p>
+</blockquote>
+<h3 id="Defination-2"><a href="#Defination-2" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p><strong>弱化后的</strong>一对多的依赖中，一个对象发生变化，所有依赖他的对象都可以<strong>得到通知</strong>并<strong>自动更新</strong></p>
+</blockquote>
+<h3 id="Code-and-UML-2"><a href="#Code-and-UML-2" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//GUI</span></span><br><span class="line"><span class="comment">//通过稳定的Observer基类，接口来弱化耦合关系</span></span><br><span class="line"><span class="comment">//观察者需要通过addListenser注册成为&quot;监听对象&quot;，并实现Observer接口从而具有自动更新的能力</span></span><br><span class="line"><span class="comment">//目标对象中含有某种容器存放各个观察者对象，注册实际上就是push_back</span></span><br><span class="line"><span class="comment">//目标对象发送通知notify方法其实是遍历容器调用接口中update()抽象方法(因此观察者对象必须实现Observer接口)</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210721083330460.png" alt="image-20210721083330460"></p>
+</blockquote>
+<h1 id="“单一职责”模式"><a href="#“单一职责”模式" class="headerlink" title="“单一职责”模式"></a>“单一职责”模式</h1><blockquote>
+<p>责任划分不清晰，继承拓展使得子类急剧膨胀</p>
+</blockquote>
+<h2 id="Decorator-模式"><a href="#Decorator-模式" class="headerlink" title="Decorator 模式"></a>Decorator 模式</h2><h3 id="Motivation-3"><a href="#Motivation-3" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>过度使用<strong>继承</strong>来<strong>拓展</strong>对象功能，使得<strong>子类过度膨胀</strong></p>
+<blockquote>
+<p>继承为继承<strong>静态特质</strong>，拓展不够灵活</p>
+<blockquote>
+<p>编译时装配</p>
+<p>运行时装配</p>
+</blockquote>
+<p>拓展功能增多</p>
+<p>各种组合功能</p>
+</blockquote>
+<p>eg:</p>
+<p><img src="/images/Design_Mode/image-20210721100237043.png" alt="image-20210721100237043"></p>
+</blockquote>
+<h3 id="Defination-3"><a href="#Defination-3" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p><strong>组合代替继承</strong></p>
+<p>解决<strong>主体类</strong>在多个方向上的<strong>拓展</strong> </p>
+<blockquote>
+<p>装饰的含义是在已有功能已有对象的基础上拓展</p>
+<p>在<strong>创建拓展对象</strong>的时候需要<strong>绑定</strong> (运行时) <strong>主体类对象</strong></p>
+</blockquote>
+<p>黑盒复用，因多态存在，可通过复合基类指针来实现<strong>不同方向</strong>拓展功能的<strong>组合</strong>，灵活度高</p>
+<p>eg: 如 File 与 Crypto 是两个方向的功能拓展 本就不应该使用继承方式表示关系</p>
+<p><img src="/images/Design_Mode/image-20210721100207892.png" alt="image-20210721100207892"></p>
+</blockquote>
+<h3 id="Code-and-UML-3"><a href="#Code-and-UML-3" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//功能stream</span></span><br><span class="line"><span class="comment">//继承体系中，子类相同的字段应该向上提取，Decorator 中间类即为 Component* 共同字段的上提</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//注意:</span></span><br><span class="line"><span class="comment">//不把Component*字段上升到stream基类的原因是FileStream等主体类并不需要该字段</span></span><br><span class="line"><span class="comment">//因此把该共有字段上升到Decorator装饰器对象中</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//Decorator</span></span><br><span class="line"><span class="comment">//接口上is-a Component用于满足 Component 接口规范</span></span><br><span class="line"><span class="comment">//实现上has-a Component用于使用多态基类指针黑盒复用其他功能接口，完成功能组合</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Decorator</span> :</span> <span class="keyword">public</span> Component &#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line"> Component* component;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"> <span class="comment">//...省略</span></span><br><span class="line"> <span class="built_in">Decorator</span>(...):...&#123;&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210721094228300.png" alt="image-20210721094228300"></p>
+</blockquote>
+<h2 id="Bridge-模式"><a href="#Bridge-模式" class="headerlink" title="Bridge 模式"></a>Bridge 模式</h2><h3 id="Motivation-4"><a href="#Motivation-4" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>某些类型具有<strong>固有的实现逻辑</strong>，使得他们具有<strong>多个变化维度</strong></p>
+</blockquote>
+<h3 id="Defination-4"><a href="#Defination-4" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>通过<strong>组合</strong>，将<strong>抽象部分</strong>与<strong>实现部分</strong>分离，使他们可以独立的变化</p>
+</blockquote>
+<h3 id="Code-and-UML-4"><a href="#Code-and-UML-4" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//通信模块</span></span><br><span class="line"><span class="comment">//解耦了抽象和实现之间固有的绑定关系，使得抽象和实现可以沿着各自的维度来变化</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MessagerImp</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//业务抽象</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Messager</span> &#123;</span></span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	MessagerImp* messager;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">Messager</span>(MessagerImp* m) :<span class="built_in">messager</span>(m) &#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Login</span><span class="params">(string username, string password)</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">SendMessage</span><span class="params">(string message)</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">SendPicture</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">Messager</span>() &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//实现抽象</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MessagerImp</span> &#123;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PlaySound</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">DrawShape</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">WriteText</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Connect</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">MessagerImp</span>() &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//平台实现</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PCMessagerBase</span> :</span> <span class="keyword">public</span> MessagerImp &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PlaySound</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//**********</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">DrawShape</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//**********</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">WriteText</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//**********</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Connect</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//**********</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MobileMessagerBase</span> :</span> <span class="keyword">public</span> MessagerImp &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PlaySound</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//==========</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">DrawShape</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//==========</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">WriteText</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//==========</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Connect</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//==========</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//业务逻辑</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MessagerLite</span>:</span><span class="keyword">public</span> Messager &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="built_in">MessagerLite</span>(MessagerImp* m) :<span class="built_in">Messager</span>(m) &#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Login</span><span class="params">(string username, string password)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		messager-&gt;<span class="built_in">Connect</span>();</span><br><span class="line">		<span class="comment">//........</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">SendMessage</span><span class="params">(string message)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		messager-&gt;<span class="built_in">WriteText</span>();</span><br><span class="line">		<span class="comment">//........</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">SendPicture</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		messager-&gt;<span class="built_in">DrawShape</span>();</span><br><span class="line">		<span class="comment">//........</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MessagerPerfect</span>:</span><span class="keyword">public</span> Messager &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="built_in">MessagerPerfect</span>(MessagerImp* m) :<span class="built_in">Messager</span>(m) &#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Login</span><span class="params">(string username, string password)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		messager-&gt;<span class="built_in">PlaySound</span>();</span><br><span class="line">		<span class="comment">//********</span></span><br><span class="line">		messager-&gt;<span class="built_in">Connect</span>();</span><br><span class="line">		<span class="comment">//........</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">SendMessage</span><span class="params">(string message)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		messager-&gt;<span class="built_in">PlaySound</span>();</span><br><span class="line">		<span class="comment">//********</span></span><br><span class="line">		messager-&gt;<span class="built_in">WriteText</span>();</span><br><span class="line">		<span class="comment">//........</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">SendPicture</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		messager-&gt;<span class="built_in">PlaySound</span>();</span><br><span class="line">		<span class="comment">//********</span></span><br><span class="line">		messager-&gt;<span class="built_in">DrawShape</span>();</span><br><span class="line">		<span class="comment">//........</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">//编译时装配</span></span><br><span class="line">	MessagerImp* p = <span class="keyword">new</span> <span class="built_in">PCMessagerBase</span>();</span><br><span class="line">	Messager * messager = <span class="keyword">new</span> <span class="built_in">MessagerLite</span>(p);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210725171507191.png" alt="image-20210725171507191"></p>
+</blockquote>
+<h2 id="Decorator-和-Bridge-的异同"><a href="#Decorator-和-Bridge-的异同" class="headerlink" title="Decorator 和 Bridge 的异同"></a>Decorator 和 Bridge 的异同</h2><ul>
+<li><p>异</p>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">Decorator</th>
+<th align="center">Bridge</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">单一职责</td>
+<td align="center">功能子类的职责交叉划分不清</td>
+<td align="center">基类多维度职责划分不清</td>
+</tr>
+<tr>
+<td align="center">共有字段</td>
+<td align="center">无法上升至基类，上升至Decorator装饰器接口类中</td>
+<td align="center">上升至业务抽象基类中</td>
+</tr>
+<tr>
+<td align="center">应用场景</td>
+<td align="center">单维度多方向的功能拓展</td>
+<td align="center">多维度的需求变化</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>同</p>
+<blockquote>
+<ol>
+<li><p>都是采用<strong>组合代替继承</strong>解决子类膨胀问题</p>
+</li>
+<li><p>都是<strong>运行时装配</strong>，即功能对象与主类对象的组合，各维度对象与主维度对象的组合</p>
+<blockquote>
+<p>通过多态在创建对象时进行对象<strong>动态组合</strong>，而非在类中直接绑定<strong>静态组合</strong></p>
+</blockquote>
+</li>
+</ol>
+</blockquote>
+</li>
+</ul>
+<h1 id="“对象创建”-模式"><a href="#“对象创建”-模式" class="headerlink" title="“对象创建” 模式"></a>“对象创建” 模式</h1><blockquote>
+<p>避免了使用 new 进行对象创建导致的紧耦合(依赖具体类)，使得对象的创建更为稳定</p>
+</blockquote>
+<h2 id="Factory-Method-模式"><a href="#Factory-Method-模式" class="headerlink" title="Factory Method 模式"></a>Factory Method 模式</h2><h3 id="Motivation-5"><a href="#Motivation-5" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>对象的具体类型经常变化，导致<strong>新对象</strong>创建时<strong>紧耦合</strong>现象</p>
+</blockquote>
+<h3 id="Defination-5"><a href="#Defination-5" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>定义一个创建对象的接口(工厂基类)，让子类决定实例化哪一个类(具体工厂)</p>
+<p>通过虚函数使一个类的实例化<strong>延迟</strong>到子类实现</p>
+</blockquote>
+<h3 id="Code-and-UML-5"><a href="#Code-and-UML-5" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//FactoryMethod基类 将对象创建任务延迟到子类</span></span><br><span class="line"><span class="comment">//通过拓展策略，创建新增类型对象 --添加一个子类实现工厂基类接口</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210721110754696.png" alt="image-20210721110754696"></p>
+</blockquote>
+<h2 id="Abstract-Factory-模式"><a href="#Abstract-Factory-模式" class="headerlink" title="Abstract Factory 模式"></a>Abstract Factory 模式</h2><h3 id="Motivation-6"><a href="#Motivation-6" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>一系列<strong>相互依赖对象</strong> <strong>/</strong> <strong>系列对象</strong>的创建工作，通过简单工厂模式创建的各个对象可能<strong>破坏</strong>这种依赖关系</p>
+</blockquote>
+<h3 id="Defination-6"><a href="#Defination-6" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>提供一个接口，让该接口来负责创建一系列”相互依赖对象”</p>
+</blockquote>
+<h3 id="Code-and-UML-6"><a href="#Code-and-UML-6" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//数据库读取</span></span><br><span class="line"><span class="comment">//不同数据库command与connection对象相互关联且 </span></span><br><span class="line"><span class="comment">//将各个相关联的分工厂基类(commandFactory,connectionFactory)合并为一个总工厂基类(Factory)</span></span><br><span class="line"><span class="comment">//该总工厂接口规范子工厂对象的创建工作</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="/images/Design_Mode/image-20210722081816272.png" alt="image-20210722081816272"></p>
+</blockquote>
+<h2 id="Prototype-模式"><a href="#Prototype-模式" class="headerlink" title="Prototype 模式"></a>Prototype 模式</h2><h3 id="Motivation-7"><a href="#Motivation-7" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>某些<strong>结构复杂</strong>的对象的创建工作</p>
+<p><strong>结构复杂</strong>的对象再面临<strong>复杂变化</strong>时，很难拥有<strong>稳定的接口</strong></p>
+</blockquote>
+<h3 id="Defination-7"><a href="#Defination-7" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>使用<strong>原型实例</strong>指定创建对象的种类，通过<strong>拷贝</strong>这些原型来创建新的对象</p>
+<blockquote>
+<p>深拷贝</p>
+</blockquote>
+</blockquote>
+<h3 id="Code-and-UML-7"><a href="#Code-and-UML-7" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+  <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//原型对象只可用于clone新对象，不允许直接使用原型对象的接口</span></span><br><span class="line"><span class="comment">//Prototype基类规范了clone和其他稳定接口，新增变化的复杂类型是实现该接口即可</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210722093126545.png" alt="image-20210722093126545"></p>
+</blockquote>
+<h2 id="Builder-模式"><a href="#Builder-模式" class="headerlink" title="Builder 模式"></a>Builder 模式</h2><h3 id="Motivation-8"><a href="#Motivation-8" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p><strong>复杂对象</strong>由<strong>部分子对象</strong>通过一定<strong>算法</strong>构成</p>
+<p>而子对象的复杂变化，使算法的稳定面临考验</p>
+</blockquote>
+<h3 id="Defination-8"><a href="#Defination-8" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>将复杂对象的<strong>构建</strong>和其<strong>表示</strong>相<strong>分离</strong></p>
+<p>使得同样的构建过程(稳定)可以创建不同的表示(变化)</p>
+<p><code>注意:</code>不能在构造函数中进行构建调用</p>
+<blockquote>
+<p>因为对象模型中会先调用父类构造函数，多态调用时子类虚函数还未定义便被父类调用</p>
+</blockquote>
+</blockquote>
+<h3 id="Code-and-UML-8"><a href="#Code-and-UML-8" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//House</span></span><br><span class="line"><span class="comment">//构造房子的步骤(算法)稳定，不能改变</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Builder</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">House</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">	<span class="built_in">House</span>(Builder* b):<span class="built_in">builder</span>(b)&#123;&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">construct</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	Builder* builder;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Builder</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function">House* <span class="title">GetResult</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> pHouse;</span><br><span class="line">	&#125;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	House* pHouse; <span class="comment">//方便访问到Hosue的某些属性</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart1</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart2</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart3</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StoneBuilder</span> :</span><span class="keyword">public</span> Builder &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//...</span></span><br><span class="line">		<span class="built_in">buildpart1</span>();</span><br><span class="line">		<span class="comment">//...</span></span><br><span class="line">		<span class="built_in">buildpart2</span>();</span><br><span class="line">		<span class="comment">//...</span></span><br><span class="line">		<span class="built_in">buildpart3</span>();</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;StoneHouse 建造完成&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;   </span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;部分1建造完成&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;部分2建造完成&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart3</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;部分3建造完成&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StoneHouse</span> :</span> <span class="keyword">public</span> House&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">StoneHouse</span>(Builder* b) :<span class="built_in">House</span>(b) &#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">construct</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		builder-&gt;<span class="built_in">init</span>();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	House* p = <span class="keyword">new</span> <span class="built_in">StoneHouse</span>(<span class="keyword">new</span> <span class="built_in">StoneBuilder</span>());</span><br><span class="line">	p-&gt;<span class="built_in">construct</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//---------------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">//进一步划分</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Builder</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">House</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">House</span>(Builder* b):<span class="built_in">builder</span>(b)&#123;&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">construct</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	Builder* builder;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Builder</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="function">House* <span class="title">GetResult</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> pHouse;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart1</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart2</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart3</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	House* pHouse; <span class="comment">//方便访问到Hosue的某些属性</span></span><br><span class="line">	</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StoneBuilder</span> :</span><span class="keyword">public</span> Builder &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;部分1建造完成&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;部分2建造完成&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">buildpart3</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;部分3建造完成&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HouseDirector</span> &#123;</span></span><br><span class="line">	</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">HouseDirector</span>(Builder* b) :<span class="built_in">builder</span>(b) &#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function">House* <span class="title">construct</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//...</span></span><br><span class="line">		builder-&gt;<span class="built_in">buildpart1</span>();</span><br><span class="line">		<span class="comment">//...</span></span><br><span class="line">		builder-&gt;<span class="built_in">buildpart2</span>();</span><br><span class="line">		<span class="comment">//...</span></span><br><span class="line">		builder-&gt;<span class="built_in">buildpart3</span>();</span><br><span class="line">		<span class="comment">//</span></span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;House 建造完成&quot;</span> &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> builder-&gt;<span class="built_in">GetResult</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	Builder* builder;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StoneHouse</span> :</span> <span class="keyword">public</span> House&#123;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	HouseDirector* p = <span class="keyword">new</span> <span class="built_in">HouseDirector</span>(<span class="keyword">new</span> <span class="built_in">StoneBuilder</span>());</span><br><span class="line">	House* h = p-&gt;<span class="built_in">construct</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210722102754917.png" alt="image-20210722102754917"></p>
+</blockquote>
+<h1 id="“对象性能”-模式"><a href="#“对象性能”-模式" class="headerlink" title="“对象性能” 模式"></a>“对象性能” 模式</h1><h2 id="Singleton-模式"><a href="#Singleton-模式" class="headerlink" title="Singleton 模式"></a>Singleton 模式</h2><h3 id="Motivation-9"><a href="#Motivation-9" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>类在系统中只存在一个实例</p>
+<p>这是类设计者的责任，而不是使用者的责任</p>
+</blockquote>
+<h3 id="Defination-9"><a href="#Defination-9" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>保证一个类仅有一个实例</p>
+<p>并提供一个该实例的<strong>全局访问点</strong></p>
+</blockquote>
+<h3 id="Code-and-UML-9"><a href="#Code-and-UML-9" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//限制构造函数和拷贝构造的访问权限 private / protected </span></span><br><span class="line"><span class="comment">//仅提供静态方法接口获取为一个的静态对象</span></span><br><span class="line"><span class="comment">//单线程环境下简单但是多线程环境下需要考虑完全性问题</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> &#123;</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line"> <span class="built_in">Singleton</span>()&#123;&#125;</span><br><span class="line"> <span class="built_in">Singleton</span>(<span class="keyword">const</span> Singleton&amp; a)&#123;&#125;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"> <span class="keyword">static</span> Singleton* single;</span><br><span class="line"> <span class="function"><span class="keyword">static</span> Singleton* <span class="title">getSingle</span><span class="params">()</span></span>&#123;</span><br><span class="line">     <span class="comment">//..</span></span><br><span class="line"> &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Singleton* Singleton::single = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//单线程安全</span></span><br><span class="line"><span class="function">Singleton* <span class="title">Singleton::getSingle</span><span class="params">()</span></span>&#123;</span><br><span class="line"> <span class="keyword">if</span>(single==<span class="literal">nullptr</span>) &#123;</span><br><span class="line">     single = <span class="keyword">new</span> <span class="built_in">Singleton</span>();</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="keyword">return</span> single;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//判断前加锁正确但是高并发代价太高</span></span><br><span class="line"><span class="function">Singleton* <span class="title">Singleton::getSingle</span><span class="params">()</span></span>&#123;</span><br><span class="line"> Lock lock;</span><br><span class="line"> <span class="keyword">if</span>(single==<span class="literal">nullptr</span>) &#123;</span><br><span class="line">     single = <span class="keyword">new</span> <span class="built_in">Singleton</span>();</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="keyword">return</span> single;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//双检查锁不安全</span></span><br><span class="line"><span class="comment">//因为reorder导致new运算可能未执行构造函数之前先为single赋予一个空的内存地址</span></span><br><span class="line"><span class="comment">//而别的线程在读时大概率可能出现问题</span></span><br><span class="line"><span class="function">Singleton* <span class="title">Singleton::getSingle</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">if</span>(single==<span class="literal">nullptr</span>) &#123;</span><br><span class="line">     Lock lock;</span><br><span class="line">     <span class="keyword">if</span>(single==<span class="literal">nullptr</span>)&#123; <span class="comment">//注意第二层判断</span></span><br><span class="line">     single = <span class="keyword">new</span> <span class="built_in">Singleton</span>();</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="keyword">return</span> single;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//c++11 volatile</span></span><br><span class="line"><span class="comment">//保证new先构造在指针转型</span></span><br><span class="line">std::atomic&lt;Singleton*&gt; Singleton::m_instance;</span><br><span class="line">std::mutex Singleton::m_mutex;</span><br><span class="line"></span><br><span class="line"><span class="function">Singleton* <span class="title">Singleton::getSingle</span><span class="params">()</span> </span>&#123;</span><br><span class="line"> Singleton* tmp = m_instance.<span class="built_in">load</span>(std::memory_order_relaxed);</span><br><span class="line"> std::<span class="built_in">atomic_thread_fence</span>(std::memory_order_acquire);<span class="comment">//获取内存fence</span></span><br><span class="line"> <span class="keyword">if</span> (tmp == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">     <span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">lock</span><span class="params">(m_mutex)</span></span>;</span><br><span class="line">     tmp = m_instance.<span class="built_in">load</span>(std::memory_order_relaxed);</span><br><span class="line">     <span class="keyword">if</span> (tmp == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">         tmp = <span class="keyword">new</span> Singleton;</span><br><span class="line">         std::<span class="built_in">atomic_thread_fence</span>(std::memory_order_release);<span class="comment">//释放内存fence</span></span><br><span class="line">         m_instance.<span class="built_in">store</span>(tmp, std::memory_order_relaxed);</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="keyword">return</span> tmp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210723082322431.png" alt="image-20210723082322431"></p>
+</blockquote>
+<h2 id="Flyweight-享元模式"><a href="#Flyweight-享元模式" class="headerlink" title="Flyweight 享元模式"></a>Flyweight 享元模式</h2><h3 id="Motivation-10"><a href="#Motivation-10" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>纯粹的<strong>面向对象方案</strong>会有大量<strong>细粒度对象</strong>充斥系统，造成<strong>内存方面性能消耗</strong></p>
+</blockquote>
+<h3 id="Defination-10"><a href="#Defination-10" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>运用<strong>共享技术</strong>有效支持大量<strong>细粒度对象</strong></p>
+<p>共享对象存放在<strong>享元池</strong>中</p>
+</blockquote>
+<h3 id="Code-and-UML-10"><a href="#Code-and-UML-10" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Font 字体与字符</span></span><br><span class="line"><span class="comment">//不同字符相同字体的情况下共享同一种字体对象</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;map&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Font</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">Font</span>(string n) :<span class="built_in">name</span>(n) &#123;&#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	string name;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FontFactory</span> &#123;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//享元池</span></span><br><span class="line">	map&lt;string, Font*&gt; font_pool;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function">Font* <span class="title">getFont</span><span class="params">(<span class="keyword">const</span> string&amp; key)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		map&lt;string, Font*&gt;::iterator ite = font_pool.<span class="built_in">find</span>(key);</span><br><span class="line">		<span class="keyword">if</span> (ite != font_pool.<span class="built_in">end</span>())</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">return</span> ite-&gt;second;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			Font* font = <span class="keyword">new</span> <span class="built_in">Font</span>(key);</span><br><span class="line">			font_pool[key] = font;</span><br><span class="line">			<span class="keyword">return</span> font;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	FontFactory* x = <span class="keyword">new</span> <span class="built_in">FontFactory</span>();</span><br><span class="line">	Font* f1 = x-&gt;<span class="built_in">getFont</span>(<span class="string">&quot;斜体&quot;</span>);</span><br><span class="line">	Font* f2 = x-&gt;<span class="built_in">getFont</span>(<span class="string">&quot;楷体&quot;</span>);</span><br><span class="line">	Font* f3 = x-&gt;<span class="built_in">getFont</span>(<span class="string">&quot;楷体&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">auto</span> x : x-&gt;font_pool) &#123;</span><br><span class="line">		cout &lt;&lt; x.first &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210725153037160.png" alt="image-20210725153037160"></p>
+</blockquote>
+<h1 id="“接口隔离”-模式"><a href="#“接口隔离”-模式" class="headerlink" title="“接口隔离” 模式"></a>“接口隔离” 模式</h1><h2 id="Facade-模式"><a href="#Facade-模式" class="headerlink" title="Facade 模式"></a>Facade 模式</h2><h3 id="Motivation-11"><a href="#Motivation-11" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p><strong>客户</strong>与<strong>系统组件</strong>有过多的耦合</p>
+<p><img src="/images/Design_Mode/image-20210723085413221.png" alt="image-20210723085413221"></p>
+</blockquote>
+<h3 id="Defination-11"><a href="#Defination-11" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>Facade模式定义一个稳定接口，隔离子系统的内部变化对客户带来的影响</p>
+<p>解耦了系统内部与系统外部的紧耦合关系，系统间的(单向)对象关联</p>
+<p><code>注意:</code>Facade模式中子系统内部必须是相互耦合关系大的组件，而不是简单地功能组合  –高内聚</p>
+</blockquote>
+<h3 id="Code-and-UML-11"><a href="#Code-and-UML-11" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Facade更注重层架构的层次去看整个系统，而不是单个类的层次</span></span><br></pre></td></tr></table></figure>
+
+</blockquote>
+<h2 id="Proxy-模式"><a href="#Proxy-模式" class="headerlink" title="Proxy 模式"></a>Proxy 模式</h2><h3 id="Motivation-12"><a href="#Motivation-12" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>有些对象由于某些原因通过<strong>原生接口</strong>直接访问(<strong>直接依赖</strong>)会带来很多麻烦或者根本不能直接访问</p>
+<blockquote>
+<ol>
+<li>对象创建开销大</li>
+<li>某些操作需要安全控制</li>
+<li>进程外的访问</li>
+<li>性能损失</li>
+</ol>
+</blockquote>
+</blockquote>
+<h3 id="Defination-12"><a href="#Defination-12" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>为其他对象<strong>提供一种代理</strong>以控制对这个对象的<strong>透明访问</strong></p>
+<blockquote>
+<p><strong>间接接口</strong>在保证<strong>透明操作</strong>的前提下进而<strong>控制</strong>额外的复杂<strong>问题</strong></p>
+<p>若能够实现间接控制，有时损失一些透明度也是可以的</p>
+</blockquote>
+</blockquote>
+<h3 id="Code-and-UML-12"><a href="#Code-and-UML-12" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//原生访问方式</span></span><br><span class="line">Subject* sub = <span class="keyword">new</span> <span class="built_in">RealSubject</span>();</span><br><span class="line"><span class="comment">//间接访问方式</span></span><br><span class="line">Subject* sub = <span class="keyword">new</span> <span class="built_in">Proxy</span>();</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210723095954374.png" alt="image-20210723095954374"></p>
+</blockquote>
+<h2 id="Adapter-模式"><a href="#Adapter-模式" class="headerlink" title="Adapter 模式"></a>Adapter 模式</h2><h3 id="Motivation-13"><a href="#Motivation-13" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>旧的对象，新的环境，要求旧的对象在新的环境中具有新的接口</p>
+<p>迁移性的变化需求</p>
+</blockquote>
+<h3 id="Defination-13"><a href="#Defination-13" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>将一个类<strong>不兼容</strong>的旧接口<strong>转换</strong>成与新环境<strong>兼容</strong>的新接口</p>
+<p>要求旧接口是<strong>adaptable</strong>的</p>
+<p><strong>GOF 23 下的两种Adapter模式</strong></p>
+<ul>
+<li>对象适配器</li>
+</ul>
+<blockquote>
+<p>Adapter实现新的接口规范，组合实现了旧接口的对象，复用旧接口来实现新的接口</p>
+</blockquote>
+<ul>
+<li>类适配器 –不提倡</li>
+</ul>
+<blockquote>
+<p>Apdater多继承，public继承新接口规范，protected继承旧接口规范</p>
+<p>灵活度不高</p>
+</blockquote>
+</blockquote>
+<h3 id="Code-and-UML-13"><a href="#Code-and-UML-13" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//简单接口兼容处理</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Old</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">print_old</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">xrint_old</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Obj_old</span> :</span><span class="keyword">public</span> Old &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">print_old</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;print_old&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">xrint_old</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;xrint_old&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">New</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">print_new</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Obj_new</span> :</span><span class="keyword">public</span> New &#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	Old* interface_old;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">Obj_new</span>(Old* p) :<span class="built_in">interface_old</span>(p) &#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">print_new</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		interface_old-&gt;<span class="built_in">print_old</span>();</span><br><span class="line">		interface_old-&gt;<span class="built_in">xrint_old</span>();</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;这是新的接口哦&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	New* obj = <span class="keyword">new</span> <span class="built_in">Obj_new</span>(<span class="keyword">new</span> <span class="built_in">Obj_old</span>());</span><br><span class="line">	obj-&gt;<span class="built_in">print_new</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210723104524788.png" alt="image-20210723104524788"></p>
+</blockquote>
+<h2 id="Mediator-模式"><a href="#Mediator-模式" class="headerlink" title="Mediator 模式"></a>Mediator 模式</h2><h3 id="Motivation-14"><a href="#Motivation-14" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p><strong>系统内部</strong>多个对象<strong>关联紧密</strong>，但由于是<strong>直接的引用依赖</strong>，导致一方发生变化，这种<strong>关系</strong>也将不断地发生变化</p>
+<p><img src="/images/Design_Mode/image-20210723112631076.png" alt="image-20210723112631076"></p>
+</blockquote>
+<h3 id="Defination-14"><a href="#Defination-14" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>将<strong>系统内部</strong>的<strong>多个对象</strong>的复杂关系进行解耦，Mediator模式将多个对象间的<strong>控制逻辑</strong>进行<strong>集中管理</strong></p>
+<p>多个对象间相互关联 -&gt; 多个对象与Mediator关联</p>
+</blockquote>
+<h3 id="Code-and-UML-14"><a href="#Code-and-UML-14" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//Facade模式解耦系统间(单向)关联关系 单方向的依赖</span></span><br><span class="line"><span class="comment">//Mediator模式解耦系统内部(双向)关联关系 双方向的依赖</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//Mediator具体对象的实现，对控制逻辑的处理可能相当复杂</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<h1 id="“状态变化”模式"><a href="#“状态变化”模式" class="headerlink" title="“状态变化”模式"></a>“状态变化”模式</h1><h2 id="State-模式"><a href="#State-模式" class="headerlink" title="State 模式"></a>State 模式</h2><h3 id="Motivation-15"><a href="#Motivation-15" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>状态变化，其行为也会发生变化，如何根据状态变化透明更改对象行为</p>
+</blockquote>
+<h3 id="Defination-15"><a href="#Defination-15" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>允许一个对象在其内部状态改变时改变它的行为</p>
+</blockquote>
+<h3 id="Code-and-UML-15"><a href="#Code-and-UML-15" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//State 模式将所有 特定状态 以及有关的 特定行为 封装到state基类的子类对象中 </span></span><br><span class="line"><span class="comment">//使得在切换状态对象时候，在接口稳定的情况下，对象行为也随之改变</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">State</span> &#123;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="comment">//用于返回状态对象</span></span><br><span class="line">	State* state;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="comment">//相应状态下的行为</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">operator1</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">operator2</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> State* <span class="title">getState</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">State</span>() &#123;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StateB</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StateA</span>:</span><span class="keyword">public</span> State &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="keyword">static</span> StateA* instance;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">	<span class="comment">//单线程环境下单例创建对象</span></span><br><span class="line">	<span class="function"><span class="keyword">static</span> StateA* <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (instance == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">			instance = <span class="keyword">new</span> <span class="built_in">StateA</span>();</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> instance;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//相应状态下的行为</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">operator1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;状态A下的operator1行为&quot;</span> &lt;&lt; endl;</span><br><span class="line">		state = StateB::<span class="built_in">getInstance</span>();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">operator2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;状态A下的operator2行为&quot;</span> &lt;&lt; endl;</span><br><span class="line">		state = StateB::<span class="built_in">getInstance</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> State* <span class="title">getState</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> state;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">StateA</span>() &#123;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StateB</span> :</span><span class="keyword">public</span> State &#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="keyword">static</span> StateB* instance;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="comment">//单线程环境下单例创建对象</span></span><br><span class="line">	<span class="function"><span class="keyword">static</span> StateB* <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span> (instance == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">			instance = <span class="keyword">new</span> <span class="built_in">StateB</span>();</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> instance;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//相应状态下的行为</span></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">operator1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;状态B下的operator1行为&quot;</span> &lt;&lt; endl;</span><br><span class="line">		state = StateA::<span class="built_in">getInstance</span>();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">operator2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;状态B下的operator2行为&quot;</span> &lt;&lt; endl;</span><br><span class="line">		state = StateA::<span class="built_in">getInstance</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> State* <span class="title">getState</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> state;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">StateB</span>() &#123;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">StateA* StateA::instance = <span class="literal">nullptr</span>;</span><br><span class="line">StateB* StateB::instance = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	State* p= StateB::<span class="built_in">getInstance</span>();</span><br><span class="line">	p-&gt;<span class="built_in">operator2</span>();</span><br><span class="line">	p = p-&gt;<span class="built_in">getState</span>();</span><br><span class="line">	p-&gt;<span class="built_in">operator2</span>();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210725080900892.png" alt="image-20210725080900892"></p>
+</blockquote>
+<h2 id="Memento-模式"><a href="#Memento-模式" class="headerlink" title="Memento 模式"></a>Memento 模式</h2><blockquote>
+<p>略</p>
+</blockquote>
+<h1 id="“数据结构”-模式"><a href="#“数据结构”-模式" class="headerlink" title="“数据结构” 模式"></a>“数据结构” 模式</h1><h2 id="Composite-模式"><a href="#Composite-模式" class="headerlink" title="Composite 模式"></a>Composite 模式</h2><h3 id="Motivation-16"><a href="#Motivation-16" class="headerlink" title="Motivation"></a>Motivation</h3><blockquote>
+<p>客户端代码过度依赖于<strong>对象容器内部实现结构</strong>而非抽象接口</p>
+</blockquote>
+<h3 id="Defination-16"><a href="#Defination-16" class="headerlink" title="Defination"></a>Defination</h3><blockquote>
+<p>将对象<strong>组合成树形结构</strong>来表示 “部分-整体” 的层次机构</p>
+<p>使得单个对象和组合对象的使用具有一致性(对外提供稳定的一致的接口)</p>
+</blockquote>
+<h3 id="Code-and-UML-16"><a href="#Code-and-UML-16" class="headerlink" title="Code and UML"></a>Code and UML</h3><blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//客户端使用一致性的接口调用对象，无需关系调用对象的结构的复合结构还是单个对象</span></span><br><span class="line"><span class="comment">//达到了客户代码与复杂对象内部和结构的解耦</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;list&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Compoment</span> &#123;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(Compoment* n)</span> </span>= <span class="number">0</span>;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">remove</span><span class="params">(Compoment* n)</span> </span>= <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">Compoment</span>() &#123;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Compoment_tree</span> :</span><span class="keyword">public</span> Compoment &#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	string name;</span><br><span class="line">	list&lt;Compoment*&gt; list;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">Compoment_tree</span>(string n) :<span class="built_in">name</span>(n) &#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">(Compoment* n)</span> </span>&#123;</span><br><span class="line">		list.<span class="built_in">push_back</span>(n);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">remove</span><span class="params">(Compoment* n)</span> </span>&#123;</span><br><span class="line">		list.<span class="built_in">remove</span>(n);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//处理当前结点</span></span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;当前String : &quot;</span> &lt;&lt; name &lt;&lt; endl;</span><br><span class="line">		<span class="comment">//对子树进行遍历执行process()操作</span></span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">auto</span>&amp; x : list) &#123;</span><br><span class="line">			x-&gt;<span class="built_in">process</span>();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Compoment_node</span> :</span><span class="keyword">public</span> Compoment &#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	string name;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">Compoment_node</span>(string n) :<span class="built_in">name</span>(n) &#123;&#125;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">process</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">//处理叶子结点</span></span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;当前String : &quot;</span> &lt;&lt; name &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">add</span><span class="params">(Compoment* n)</span> </span>&#123;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">remove</span><span class="params">(Compoment* n)</span> </span>&#123;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	Compoment* p = <span class="keyword">new</span> <span class="built_in">Compoment_tree</span>(<span class="string">&quot;node1&quot;</span>);</span><br><span class="line">	p-&gt;<span class="built_in">add</span>(<span class="keyword">new</span> <span class="built_in">Compoment_tree</span>(<span class="string">&quot;node2&quot;</span>));</span><br><span class="line">	p-&gt;<span class="built_in">add</span>(<span class="keyword">new</span> <span class="built_in">Compoment_tree</span>(<span class="string">&quot;node3&quot;</span>));</span><br><span class="line">	p-&gt;<span class="built_in">add</span>(<span class="keyword">new</span> <span class="built_in">Compoment_node</span>(<span class="string">&quot;node4&quot;</span>));</span><br><span class="line"></span><br><span class="line">	<span class="comment">//调用process时用户无需了解对象容器内部结构</span></span><br><span class="line">    p-&gt;<span class="built_in">process</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/Design_Mode/image-20210725103744204.png" alt="image-20210725103744204"></p>
+</blockquote>
+<h2 id="Iterator-模式"><a href="#Iterator-模式" class="headerlink" title="Iterator 模式"></a>Iterator 模式</h2><h2 id="Chain-of-Resposibility-模式"><a href="#Chain-of-Resposibility-模式" class="headerlink" title="Chain of Resposibility 模式"></a>Chain of Resposibility 模式</h2><h1 id="“行为变化”-模式"><a href="#“行为变化”-模式" class="headerlink" title="“行为变化” 模式"></a>“行为变化” 模式</h1><h2 id="Command-模式"><a href="#Command-模式" class="headerlink" title="Command 模式"></a>Command 模式</h2><blockquote>
+<p>略</p>
+</blockquote>
+<h2 id="Visitor-模式"><a href="#Visitor-模式" class="headerlink" title="Visitor 模式"></a>Visitor 模式</h2><blockquote>
+<p>略</p>
+</blockquote>
+<h1 id="“领域问题”-模式"><a href="#“领域问题”-模式" class="headerlink" title="“领域问题” 模式"></a>“领域问题” 模式</h1><h2 id="Interpreter-模式"><a href="#Interpreter-模式" class="headerlink" title="Interpreter 模式"></a>Interpreter 模式</h2><blockquote>
+<p>略</p>
+</blockquote>
+<h1 id="重构获得模式"><a href="#重构获得模式" class="headerlink" title="重构获得模式"></a>重构获得模式</h1><blockquote>
+<p><strong>变化点</strong>应用设计模式</p>
+<p>将<strong>稳定部分</strong>不断抽象到<strong>上层代码</strong></p>
+</blockquote>
+<h2 id="静态-gt-动态"><a href="#静态-gt-动态" class="headerlink" title="静态 -&gt; 动态"></a>静态 -&gt; 动态</h2><blockquote>
+<p>静态绑定 -&gt; 动态绑定</p>
+<p>基类指针，虚函数机制，多态调用</p>
+</blockquote>
+<h2 id="早绑定-gt-晚绑定"><a href="#早绑定-gt-晚绑定" class="headerlink" title="早绑定 -&gt; 晚绑定"></a>早绑定 -&gt; 晚绑定</h2><blockquote>
+<p>绑定 : <strong>函数体</strong>和<strong>函数调用</strong>关联起来</p>
+<p><strong>晚绑定</strong> </p>
+<blockquote>
+<p>在Library中通过虚函数机制建立稳定函数体与(未定义，未实现)变化的函数接口调用的绑定</p>
+</blockquote>
+<p><strong>早绑定</strong></p>
+<blockquote>
+<p>在Application中建立主函数体和已有(已定义，已实现)函数接口调用的绑定</p>
+</blockquote>
+<p><img src="/images/Design_Mode/image-20210719100028440.png" alt="image-20210719100028440"></p>
+</blockquote>
+<h2 id="继承-gt-组合"><a href="#继承-gt-组合" class="headerlink" title="继承 -&gt; 组合"></a>继承 -&gt; 组合</h2><blockquote>
+<p><strong>继承</strong></p>
+<blockquote>
+<p> 继承的是静态性质，拓展功能上灵活度不高</p>
+</blockquote>
+<p><strong>组合/委托</strong></p>
+<blockquote>
+<p>黑盒复用，因多态存在，可通过复合基类指针来实现拓展功能的<strong>组合</strong>，灵活度高</p>
+</blockquote>
+</blockquote>
+<h2 id="编译时依赖-gt-运行时依赖"><a href="#编译时依赖-gt-运行时依赖" class="headerlink" title="编译时依赖 -&gt; 运行时依赖"></a>编译时依赖 -&gt; 运行时依赖</h2><blockquote>
+<p><strong>编译时依赖</strong></p>
+<blockquote>
+<p> 编译时若无响应依赖对象的定义，则无法通过编译</p>
+</blockquote>
+<p><strong>运行时依赖</strong></p>
+<blockquote>
+<p>通过多态，运行时需要通过基类指针来访问响应子类的重写方法，运行时依赖于子类</p>
+</blockquote>
+</blockquote>
+<h2 id="紧耦合-gt-松耦合"><a href="#紧耦合-gt-松耦合" class="headerlink" title="紧耦合 -&gt; 松耦合"></a>紧耦合 -&gt; 松耦合</h2><h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><h2 id="一个目标"><a href="#一个目标" class="headerlink" title="一个目标"></a>一个目标</h2><blockquote>
+<p>管理变化，提高复用</p>
+</blockquote>
+<h2 id="两种手段"><a href="#两种手段" class="headerlink" title="两种手段"></a>两种手段</h2><blockquote>
+<p>分解 vs 抽象</p>
+</blockquote>
+<h2 id="八大原则"><a href="#八大原则" class="headerlink" title="八大原则"></a>八大原则</h2><h3 id="依赖倒置原则-DIP-1"><a href="#依赖倒置原则-DIP-1" class="headerlink" title="依赖倒置原则 -DIP"></a>依赖倒置原则 -DIP</h3><blockquote>
+<p>变化应该依赖于稳定，稳定不应该依赖于变化</p>
+<p>高层模块不应该依赖于低层模块，二者都可以依赖于抽象</p>
+<p>抽象不应该依赖于实现，实现细节可以依赖于抽象</p>
+</blockquote>
+<h3 id="开闭原则-OCP-1"><a href="#开闭原则-OCP-1" class="headerlink" title="开闭原则 -OCP"></a>开闭原则 -OCP</h3><blockquote>
+<p>对<strong>拓展开放</strong>，对<strong>修改封闭</strong></p>
+<p>类模块应该是可拓展的，但是不可修改</p>
+<p>类应该以<strong>拓展方式</strong>来应对需求变化，而不是更改类中代码</p>
+</blockquote>
+<h3 id="单一职责原则-SRP-1"><a href="#单一职责原则-SRP-1" class="headerlink" title="单一职责原则 -SRP"></a>单一职责原则 -SRP</h3><blockquote>
+<p>一个类应该<strong>仅有一个</strong>引起它变化的原因</p>
+<p>桥模式</p>
+</blockquote>
+<h3 id="接口隔离原则-ISP-1"><a href="#接口隔离原则-ISP-1" class="headerlink" title="接口隔离原则 -ISP"></a>接口隔离原则 -ISP</h3><blockquote>
+<p>不能让用户依赖于他们不使用的方法</p>
+<p>就是一个类实现了多个接口，其中用户用不到的方法使用private等限定隔离</p>
+</blockquote>
+<h3 id="里氏替换原则-LSP-1"><a href="#里氏替换原则-LSP-1" class="headerlink" title="里氏替换原则 -LSP"></a>里氏替换原则 -LSP</h3><blockquote>
+<p>子类型必须能替换掉它的父类型 IS-A</p>
+<p>能使用父类对象的方法子类也能适用</p>
+<p>假设有两个类，一个是Base类，另一个是Child类，并且Child类是Base的子类。那么一个方法如果可以接受一个基类对象b的话:method1(Base b)那么它必然可以接受一个子类的对象method1(Child c)</p>
+</blockquote>
+<h3 id="组合优先于继承-1"><a href="#组合优先于继承-1" class="headerlink" title="组合优先于继承"></a>组合优先于继承</h3><blockquote>
+<p>组合为黑盒复用，继承是白盒复用</p>
+<p>继承一定程度上破坏了封装性，子类父类耦合度高</p>
+</blockquote>
+<h3 id="封装变化点-1"><a href="#封装变化点-1" class="headerlink" title="封装变化点"></a>封装变化点</h3><blockquote>
+<p>一侧变化，一侧稳定</p>
+</blockquote>
+<h3 id="针对接口编程，而不是针对实现编程-1"><a href="#针对接口编程，而不是针对实现编程-1" class="headerlink" title="针对接口编程，而不是针对实现编程"></a>针对接口编程，而不是针对实现编程</h3><blockquote>
+<p>不将变量类型声明为某个特定的具体类，而是声明为某个接口</p>
+<p>客户程序无需知道对象的具体类型，只需要知道对象所具有的接口</p>
+</blockquote>
+<h2 id="重构技法"><a href="#重构技法" class="headerlink" title="重构技法"></a>重构技法</h2><p>静态 -&gt; 动态</p>
+<p>早绑定 -&gt; 晚绑定</p>
+<p>继承 -&gt; 组合</p>
+<p>编译时依赖 -&gt; 运行时依赖</p>
+<p>紧耦合 -&gt; 松耦合</p>
+<h2 id="Sample"><a href="#Sample" class="headerlink" title="Sample"></a>Sample</h2><blockquote>
+<p>常见场景下的设计模式应用 - 非定式</p>
+<p>游戏场景的转换——状态模式<br>游戏子功能的整合——Facade 门面模式</p>
+<blockquote>
+<p>Facade 使用门面模式实现游戏主程序</p>
+</blockquote>
+<p>获取游戏服务的唯一对象——Singleton 单例模式<br>游戏内各系统的整合——Mediator 中介者模式<br>角色与武器的实现——Bridge 桥接模式<br>角色属性的计算——Strategy 策略模式<br>攻击特效与击中反应——Template Method 模板方法模式<br>角色AI——State 状态模式<br>游戏角色的产生——Factory Method 工厂方法模式<br>角色的组装——Builder 建造者模式<br>关卡设计——Chain of Responsibility 责任链模式</p>
+</blockquote>
+<h1 id="手中有剑，心中有剑"><a href="#手中有剑，心中有剑" class="headerlink" title="手中有剑，心中有剑"></a>手中有剑，心中有剑</h1>]]></content>
+      <categories>
+        <category>C++Primer</category>
+      </categories>
+      <tags>
+        <tag>C++Primer</tag>
+      </tags>
+  </entry>
 </search>
