@@ -1,0 +1,620 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Unity - 编程进阶 | YunDid's Blog</title><meta name="keywords" content="Unity - C#"><meta name="author" content="YunDid"><meta name="copyright" content="YunDid"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Some Keys for Programming &#x2F; 关键点 The Current Progress &#x2F; 当前进度 Unity初级编程 - 中级编程 &#x2F; ing 动画系统demo实践 完成模型导入-&gt; 动画绑定 -&gt; 状态机组织动画 工具 fbx -&gt; motiondate -&gt; 中间数据 ue4状态机 + AI + 行为树 着手AIAnimation框架，着手动画系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity - 编程进阶">
+<meta property="og:url" content="http://example.com/2022/03/22/Unity/Unity_%E7%BC%96%E7%A8%8B/index.html">
+<meta property="og:site_name" content="YunDid&#39;s Blog">
+<meta property="og:description" content="Some Keys for Programming &#x2F; 关键点 The Current Progress &#x2F; 当前进度 Unity初级编程 - 中级编程 &#x2F; ing 动画系统demo实践 完成模型导入-&gt; 动画绑定 -&gt; 状态机组织动画 工具 fbx -&gt; motiondate -&gt; 中间数据 ue4状态机 + AI + 行为树 着手AIAnimation框架，着手动画系统">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/ma3.jpg">
+<meta property="article:published_time" content="2022-03-22T02:26:00.000Z">
+<meta property="article:modified_time" content="2022-03-22T02:43:31.023Z">
+<meta property="article:author" content="YunDid">
+<meta property="article:tag" content="Unity - C#">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/ma3.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2022/03/22/Unity/Unity_%E7%BC%96%E7%A8%8B/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: {"defaultEncoding":1,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: YunDid","link":"链接: ","source":"来源: YunDid's Blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-22 10:43:31'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="author-avatar"><img class="avatar-img" src="/img/1.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">46</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/ma3.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">YunDid's Blog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Unity - 编程进阶</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-03-22T02:26:00.000Z" title="发表于 2022-03-22 10:26:00">2022-03-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-22T02:43:31.023Z" title="更新于 2022-03-22 10:43:31">2022-03-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/YumiGame/">YumiGame</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Unity - 编程进阶"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span><span class="post-meta-separator">|</span><span class="post-meta-commentcount"><i class="far fa-comments fa-fw post-meta-icon"></i><span class="post-meta-label">评论数:</span><a href="/2022/03/22/Unity/Unity_%E7%BC%96%E7%A8%8B/#post-comment" itemprop="discussionUrl"><span class="valine-comment-count" data-xid="/2022/03/22/Unity/Unity_%E7%BC%96%E7%A8%8B/" itemprop="commentCount"></span></a></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Some-Keys-for-Programming-关键点"><a href="#Some-Keys-for-Programming-关键点" class="headerlink" title="Some Keys for Programming / 关键点"></a>Some Keys for Programming / 关键点</h1><hr>
+<h1 id="The-Current-Progress-当前进度"><a href="#The-Current-Progress-当前进度" class="headerlink" title="The Current Progress / 当前进度"></a>The Current Progress / 当前进度</h1><ul>
+<li>Unity初级编程 - 中级编程 / ing</li>
+<li>动画系统demo实践 完成模型导入-&gt; 动画绑定 -&gt; 状态机组织动画</li>
+<li>工具 fbx -&gt; motiondate -&gt; 中间数据</li>
+<li>ue4状态机 + AI + 行为树</li>
+<li>着手AIAnimation框架，着手动画系统的改写</li>
+</ul>
+<hr>
+<h1 id="ForeachLoop-循环"><a href="#ForeachLoop-循环" class="headerlink" title="ForeachLoop / 循环"></a>ForeachLoop / 循环</h1><figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">ForeachLoop</span> : <span class="title">MonoBehaviour</span> </span><br><span class="line">&#123;   </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span> (<span class="params"></span>) </span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="built_in">string</span>[] strings = <span class="keyword">new</span> <span class="built_in">string</span>[<span class="number">3</span>];</span><br><span class="line">        </span><br><span class="line">        strings[<span class="number">0</span>] = <span class="string">&quot;First string&quot;</span>;</span><br><span class="line">        strings[<span class="number">1</span>] = <span class="string">&quot;Second string&quot;</span>;</span><br><span class="line">        strings[<span class="number">2</span>] = <span class="string">&quot;Third string&quot;</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">foreach</span>(<span class="built_in">string</span> item <span class="keyword">in</span> strings)</span><br><span class="line">        &#123;</span><br><span class="line">            print (item);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Awake-and-Start-初始化方法"><a href="#Awake-and-Start-初始化方法" class="headerlink" title="Awake and Start / 初始化方法"></a>Awake and Start / 初始化方法</h1><blockquote>
+<p>执行前提 : 必须将含该方法的脚本作为组件附加至游戏对象上，否则不会执行</p>
+</blockquote>
+<ul>
+<li><p>Awake : 在加载场景时执行且仅执行一次，若该脚本组件已附加但是未被激活，仍将执行</p>
+</li>
+<li><p>Start : 在第一帧更新之前执行且仅执行一次，已附加的组件必须为激活态才会执行</p>
+</li>
+</ul>
+<h1 id="FixUpdate-and-Update-更新方法"><a href="#FixUpdate-and-Update-更新方法" class="headerlink" title="FixUpdate and Update / 更新方法"></a>FixUpdate and Update / 更新方法</h1><ul>
+<li>FixUpdate : 以固定时间间隔调用，每调用一次均完成一次物理计算，因此物理运动需要在此更新</li>
+<li>Update : 下一帧执行前调用，但各帧的时间间隔不一，因此时间间隔不固定，一些简单非物理运动等可以在此更新</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">IUpdate</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">FixedUpdate</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        print(<span class="string">&quot;FixedUpdate deltaTime : &quot;</span> + Time.deltaTime);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        print(<span class="string">&quot;Update deltaTime : &quot;</span> + Time.deltaTime);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Enabling-and-Disabling-Components-启用禁用组件"><a href="#Enabling-and-Disabling-Components-启用禁用组件" class="headerlink" title="Enabling and Disabling Components / 启用禁用组件"></a>Enabling and Disabling Components / 启用禁用组件</h1><ul>
+<li><code>ComponentName.enabled</code>属性来启用或禁用组件</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Enabled</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        render = GetComponent&lt;MeshRenderer&gt;();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">if</span> (Input.GetKeyUp(KeyCode.Space)) &#123;</span><br><span class="line">            render.enabled = !render.enabled;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> MeshRenderer render;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Activating-GameObjects-激活游戏对象"><a href="#Activating-GameObjects-激活游戏对象" class="headerlink" title="Activating GameObjects / 激活游戏对象"></a>Activating GameObjects / 激活游戏对象</h1><ul>
+<li>activeInHierarchy - 继承关系下孩子活跃状态的判断，当父对象设置为不活跃时，子对象仍活跃但是于Hierarchy为不活跃，即不会在场景中显示</li>
+<li>activeSelf - 判断游戏对象的活跃状态</li>
+<li>SetActive - 设置游戏对象的活跃状态</li>
+</ul>
+<h1 id="Translate-and-Rotate-func-变换与旋转方法"><a href="#Translate-and-Rotate-func-变换与旋转方法" class="headerlink" title="Translate and Rotate func / 变换与旋转方法"></a>Translate and Rotate func / 变换与旋转方法</h1><blockquote>
+<p>transform 为 Transform 类的一个实例，可直接使用该实例下的变换方法 (不好意思，暂不深究，先笼统解释下=-=)</p>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Move</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">if</span> (Input.GetKey(KeyCode.UpArrow)) &#123;</span><br><span class="line">            <span class="comment">//给该对象一个向前的速度向量，参数结果仍然为一个Vector3向量</span></span><br><span class="line">            transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (Input.GetKey(KeyCode.LeftArrow))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//类似于给该对象绕up所在的轴一个转速</span></span><br><span class="line">            transform.Rotate(-Vector3.up, turnSpeed * Time.deltaTime);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (Input.GetKey(KeyCode.RightArrow))</span><br><span class="line">        &#123;</span><br><span class="line">            transform.Rotate(Vector3.up, turnSpeed * Time.deltaTime);</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (Input.GetKey(KeyCode.DownArrow))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//给该对象一个向后的速度向量，参数结果仍然为一个Vector3向量</span></span><br><span class="line">            transform.Translate(-Vector3.forward * moveSpeed * Time.deltaTime);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">float</span> moveSpeed = <span class="number">10f</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">float</span> turnSpeed = <span class="number">50f</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Camera-LookAt-朝向"><a href="#Camera-LookAt-朝向" class="headerlink" title="Camera LookAt / 朝向"></a>Camera LookAt / 朝向</h1><blockquote>
+<p>transform 实例下提供 LookAt 方法设置所附加对象的朝向，但是仅仅是朝向，不会跟随移动</p>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Look</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        transform.LookAt(target);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Transform target;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<hr>
+<p>2022/1/5 21:50</p>
+<h1 id="Linear-Interpolation-线性插值"><a href="#Linear-Interpolation-线性插值" class="headerlink" title="Linear Interpolation / 线性插值"></a>Linear Interpolation / 线性插值</h1><blockquote>
+<p><code>U3D Document : Linearly interpolating is finding a value that is some percentage between two given values.</code></p>
+<p>线性插值可以找到两个值之间的某个过渡值，该值在两者之间且满足一定的百分比</p>
+<p><code>U3D Document : The third parameter in each case is still a float representing how much to interpolate.</code></p>
+<p>第三个 Percentage 用于表示该如何插入</p>
+<p><code>注意:</code></p>
+<ol>
+<li>lerp 函数仅仅是得到两值之间的某插值，注意是得到，若需要使用还需要将该函数返回值作为相应值类型变量进行处理，例如实现光照颜色随时间的平滑过渡，需要使用lerp得到过渡值并将该值赋值给光照颜色属性</li>
+</ol>
+</blockquote>
+<ul>
+<li><p>Mathf.Lerp (float From, float To, float Percentage);</p>
+<blockquote>
+<p>可用于两值之间的线性插值</p>
+<p><code>U3D Document : Under some circumstances Lerp functions can be used to smooth a value over time.</code></p>
+<p>该func有时还可以用于使某值/属性随时间平滑变化，即将From设置为该值/属性，To设置为期望不断逼近的某值，Percentage设置插入方式，若不想随帧率插入，可将该 Percentage*Time.deltaTime，使其随时间以s为单位平滑变化</p>
+</blockquote>
+</li>
+<li><p>Vector3.Lerp (Vector3 From, Vector3 To, float Percentage);</p>
+<blockquote>
+<p>可用于两向量之间的线性插值</p>
+</blockquote>
+</li>
+<li><p>Color.Lerp (Color From, Color To, float Percentage);</p>
+<blockquote>
+<p>可用于两颜色之间的线性插值</p>
+</blockquote>
+</li>
+</ul>
+<hr>
+<p>**Questions: **</p>
+<ul>
+<li>Render 与 Renderer ？</li>
+<li>GetKeyDown 与 GetKey ？</li>
+</ul>
+<hr>
+<h1 id="Destroy-销毁"><a href="#Destroy-销毁" class="headerlink" title="Destroy / 销毁"></a>Destroy / 销毁</h1><blockquote>
+<p><code>U3D Document : The Destory function can be used to remove game objects or components from game objects at run time.</code>s</p>
+<p>Destroy 函数可以用于 运行时销毁 场景中的游戏对象或者游戏对象上的某组件，其第二个参数可以设置相应的延时</p>
+<p><code>注意: </code></p>
+<ol>
+<li>销毁游戏对象的同时，其组件也将销毁</li>
+<li>脚本可通过 gameObject 直接获取其所附加的游戏对象的引用</li>
+</ol>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">DDestory</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="comment">//销毁本游戏对象</span></span><br><span class="line">        <span class="keyword">if</span> (Input.GetKeyDown(KeyCode.Space)) &#123;</span><br><span class="line">            Destroy(gameObject, <span class="number">1f</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//销毁其他游戏对象</span></span><br><span class="line">        <span class="keyword">if</span> (Input.GetKeyDown(KeyCode.A))</span><br><span class="line">        &#123;</span><br><span class="line">            Destroy(other, <span class="number">1f</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//销毁组件</span></span><br><span class="line">        <span class="keyword">if</span> (Input.GetKeyDown(KeyCode.B))</span><br><span class="line">        &#123;</span><br><span class="line">            Destroy(GetComponent&lt;Renderer&gt;(), <span class="number">1f</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> GameObject other;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="GetButton-和-GetKey-获取输入"><a href="#GetButton-和-GetKey-获取输入" class="headerlink" title="GetButton 和 GetKey / 获取输入"></a>GetButton 和 GetKey / 获取输入</h1><blockquote>
+<p>Unity 的输入不预先设置轴映射和操作映射来区别按下与持续按下，而是通过三个函数判断输入状态，返回 true or false</p>
+<p>Button 与 Key 的区别在于其使用方式，都可获取输入状态，但是 key 要求参数使用指定按键 KeyCode，而 button 可以通过 InputManager 自定义输入，参数使用 ButtonName 即可</p>
+</blockquote>
+<ul>
+<li><p>GetKeyDown / GetButtonDown</p>
+<blockquote>
+<p>按下的那帧为true，其余为false</p>
+</blockquote>
+</li>
+<li><p>GetKey / GetButton</p>
+<blockquote>
+<p>持续按下的所有帧均为true，包括按下那一帧</p>
+</blockquote>
+</li>
+<li><p>GetKeyUp /GetButtonUp</p>
+<blockquote>
+<p>松开按键的那一帧为true，其余为false</p>
+</blockquote>
+</li>
+</ul>
+<h1 id="GetAxis-获取轴"><a href="#GetAxis-获取轴" class="headerlink" title="GetAxis / 获取轴"></a>GetAxis / 获取轴</h1><blockquote>
+<p>类似于 GetButton/GetKey，但是其返回值不是 bool 类型而是介于[-1,1]之间的 float 类型，正向驱动轴的按钮按下将使轴趋向于1</p>
+<p>即按下该轴绑定的按钮，该轴便会有值，并且能双向驱动，当松开时，该轴的值将恢复0</p>
+</blockquote>
+<ul>
+<li>Gravity : 松开按钮时轴值恢复0的速度</li>
+<li>Sensitivity : 按下轴时轴趋向 -1 or 1 的速度</li>
+<li>Dead : 使用操作杆时设置，忽视某些细微操作导致的误触，可设置可忽略的范围</li>
+<li>Snap : 若勾选，则按下对应反方向的按钮时，轴将重置为0，若未勾选，按下反方向的按钮时轴值从当前值开始变化</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Axis</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="built_in">float</span> axis = Input.GetAxis(<span class="string">&quot;Horizontal&quot;</span>);</span><br><span class="line">        transform.position = <span class="keyword">new</span> Vector3(axis, transform.position.y, transform.position.z);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="OnMouseDown-鼠标点击"><a href="#OnMouseDown-鼠标点击" class="headerlink" title="OnMouseDown / 鼠标点击"></a>OnMouseDown / 鼠标点击</h1><blockquote>
+<p>OnMouseDown 函数用于处理于 GUI控件 或者碰撞体上的点击</p>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">MouseClick</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">OnMouseDown</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        GetComponent&lt;Rigidbody&gt;().AddForce(-transform.forward * <span class="number">500f</span>);</span><br><span class="line">        GetComponent&lt;Rigidbody&gt;().useGravity = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h1 id="GetComponent-获取组件"><a href="#GetComponent-获取组件" class="headerlink" title="GetComponent / 获取组件"></a>GetComponent / 获取组件</h1><blockquote>
+<p>可通过 GetComponent&lt;Type&gt; 函数获取某游戏对象上的组件并设置其属性</p>
+<p><code>注意:</code></p>
+<ol>
+<li>若组件与获取组件的脚本附加于同一个游戏对象上，则可以直接 GetComponent&lt;Type&gt;</li>
+<li>若需要获取的组件附加于其他游戏对象上，则需要先获取对应游戏对象，再通过该游戏对象调用 GetComponent&lt;Type&gt; 方法</li>
+<li>GetComponent&lt;Type&gt; 方法很消耗性能，因此一般仅在初始化时调用一次获取组件，而不逐帧调用</li>
+</ol>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">UsingOtherComponents</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">public</span> GameObject otherGameObject;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> AnotherScript anotherScript;</span><br><span class="line">    <span class="keyword">private</span> YetAnotherScript yetAnotherScript;</span><br><span class="line">    <span class="keyword">private</span> BoxCollider boxCol;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Awake</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        anotherScript = GetComponent&lt;AnotherScript&gt;();</span><br><span class="line">        yetAnotherScript = otherGameObject.GetComponent&lt;YetAnotherScript&gt;();</span><br><span class="line">        boxCol = otherGameObject.GetComponent&lt;BoxCollider&gt;();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        boxCol.size = <span class="keyword">new</span> Vector3(<span class="number">3</span>, <span class="number">3</span>, <span class="number">3</span>);</span><br><span class="line">        Debug.Log(<span class="string">&quot;The player&#x27;s score is &quot;</span> + anotherScript.playerScore);</span><br><span class="line">        Debug.Log(<span class="string">&quot;The player has died &quot;</span> + yetAnotherScript.numberOfPlayerDeaths + <span class="string">&quot; times&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="DeltaTime-时间增量"><a href="#DeltaTime-时间增量" class="headerlink" title="DeltaTime / 时间增量"></a>DeltaTime / 时间增量</h1><blockquote>
+<p><code>U3D Document : The interval in seconds from the last frame to the current one (Read Only).</code></p>
+<p>Time.deltaTime 为当前帧与上一帧的间隔时间，以秒/s为单位，只读不可修改 </p>
+<p><code>U3D Document : An important thing to remember when handling time-based actions like this is that the game’s framerate is not constant and neither is the length of time between Update function calls.</code></p>
+<p>以时间为基准的运动，不能逐帧实现，因为游戏帧率不是恒定的，即每一次 update 调用的时间间隔不是恒定的，逐帧实现的运动将导致运动不均匀</p>
+<p><code>U3D Document : The solution is to scale the size of the movement by the frame time which you can read from the Time.deltaTime property.</code></p>
+<p>能够使得运动更均匀顺滑的解决方案是通过 Time.deltaTime 属性值来缩放运动距离大小，随着帧率的变化，Time.deltaTime 也将随之变化，因此对象的移动速度将保持不变</p>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">DeltaTime</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        transform.Translate(<span class="number">0</span>, <span class="number">0</span>, speed * Time.deltaTime);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">float</span> speed = <span class="number">0.0000000000005f</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Instantiate-运行时实例化"><a href="#Instantiate-运行时实例化" class="headerlink" title="Instantiate / 运行时实例化"></a>Instantiate / 运行时实例化</h1><blockquote>
+<p>以发射器为例，可以完成运行时创建预制件的克隆体</p>
+<p><code>注意:</code></p>
+<ol>
+<li>预制件创建的初始位置一般通过 barried 来设置，barried 为一个空游戏对象用于占位子弹发射位置</li>
+<li>子弹的销毁不在if中完成，而是将销毁脚本附加于预制件上</li>
+<li>可以使用 Launcher 空游戏对象用于在层级中管理枪支与barried，并将发射脚本置于 Launcher 上</li>
+</ol>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Shoot</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="keyword">if</span> (Input.GetButtonDown(<span class="string">&quot;Fire1&quot;</span>)) &#123;</span><br><span class="line">            Bullet = Instantiate(Bullet, barried.position, barried.rotation);</span><br><span class="line">            Bullet.AddForce(barried.up * <span class="number">500</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Rigidbody Bullet;</span><br><span class="line">    <span class="keyword">public</span> Transform barried;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Invoke-延时调用"><a href="#Invoke-延时调用" class="headerlink" title="Invoke / 延时调用"></a>Invoke / 延时调用</h1><blockquote>
+<p>Invoke 可以完成某个方法的延时调用来完成对延时有要求的函数调用系统</p>
+</blockquote>
+<ul>
+<li><p>Invoke(string FuncName,float DelayTime)</p>
+<blockquote>
+<p>可以完成 FuncName 的延时调用，以秒/s为单位，DelayTime秒后调用</p>
+</blockquote>
+</li>
+<li><p>InvokeRepeating(string FuncName,float DelayTime,float IntervalTime)</p>
+<blockquote>
+<p>可以完成 FuncName 的延时调用，以秒/s为单位，DelayTime秒后调用，并且每隔IntervalTime秒重复调用</p>
+</blockquote>
+</li>
+<li><p>CancelInvoke(string FuncName)</p>
+<blockquote>
+<p>可以关闭对 FuncName 延时重复调用</p>
+</blockquote>
+</li>
+</ul>
+<hr>
+<p>2022/1/6 15:43</p>
+<hr>
+<h1 id="Properties-属性"><a href="#Properties-属性" class="headerlink" title="Properties / 属性"></a>Properties / 属性</h1><blockquote>
+<p>通过属性访问器来访问成员而不是通过 public 来访问的优势在于</p>
+<ol>
+<li>可是使该成员 只读/只写，省去相应访问器即可</li>
+<li>访问器中可添加一些方法</li>
+</ol>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Player</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//成员变量可以称为字段</span></span><br><span class="line">    <span class="keyword">private</span> <span class="built_in">int</span> experience;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//Experience 是一个基本属性</span></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">int</span> Experience</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">get</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//其他一些代码</span></span><br><span class="line">            <span class="keyword">return</span> experience;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">set</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//其他一些代码</span></span><br><span class="line">            experience = <span class="keyword">value</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Generics-泛型"><a href="#Generics-泛型" class="headerlink" title="Generics / 泛型"></a>Generics / 泛型</h1><blockquote>
+<p>where 关键字指定泛型类型约束</p>
+</blockquote>
+<ul>
+<li><p>Generics  Class</p>
+<blockquote>
+<p>public class ClassName&lt;T&gt; {}</p>
+</blockquote>
+</li>
+<li><p>Generics  Function</p>
+<blockquote>
+<p>public returnType FuncName&lt;T&gt; () {}</p>
+</blockquote>
+</li>
+<li><p>Generics  Interface</p>
+<blockquote>
+<p>public interface InterfaceName&lt;T&gt; {}</p>
+</blockquote>
+</li>
+<li><p>Generic Constraint / 泛型约束</p>
+<blockquote>
+<p>区别于c++，c++仅仅起暗示作用并不会实际约束，而c#会对期望的类型作出约束</p>
+</blockquote>
+<p>public class ClassName&lt;T&gt; where T : ConstraintList {}</p>
+<p>public returnType FuncName&lt;T&gt; ()  where T : ConstraintList {}</p>
+<p>public interface InterfaceName&lt;T&gt;  where T : ConstraintList {}</p>
+<p>ConstraintList / 约束列表 : </p>
+<ol>
+<li>Struct T类型必须为值类型</li>
+<li>new() T类型必须包含无参的公共构造函数，构造函数约束需要出现在约束列表的最后</li>
+<li>class T类型必须为引用类型</li>
+<li>ClassName T类型必须为 ClassName 类型或派生自 ClassName 基类类型</li>
+<li>InterfaceName T类型必须已实现 InterfaceName 接口</li>
+</ol>
+</li>
+</ul>
+<h1 id="Member-Hiding-成员隐藏"><a href="#Member-Hiding-成员隐藏" class="headerlink" title="Member Hiding / 成员隐藏"></a>Member Hiding / 成员隐藏</h1><blockquote>
+<p>在进行上转型时，为了能够调用父类的方法或属性，因此将子类的同名方法或属性前加 new 关键字进行隐藏，正常通过子类引用调用时并无影响，但是在上转型时，将隐藏子类的成员，而调用父类的成员</p>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Fasther</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">int</span> para = <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">SayHello</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        Debug.Log(<span class="string">&quot;Hello! Father!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Childern</span> : <span class="title">Fasther</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">new</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">SayHello</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        Debug.Log(<span class="string">&quot;Hello! Children!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Inheritated</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        Fasther father = <span class="keyword">new</span> Childern();</span><br><span class="line">        father.SayHello();</span><br><span class="line"></span><br><span class="line">        Childern children = <span class="keyword">new</span> Childern();</span><br><span class="line">        children.SayHello();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>Questions:</strong></p>
+<ol>
+<li>new 关键字隐藏的意义是什么？没有new在上转型时，不仍然会调用父类的方法吗，为何需要new呢？</li>
+<li>virtual 需要搭配 override ，只有其中一个将表示什么意思</li>
+</ol>
+<hr>
+<h1 id="Overriding-重写"><a href="#Overriding-重写" class="headerlink" title="Overriding / 重写"></a>Overriding / 重写</h1><blockquote>
+<p>c#中重写需要将父类被重写的方法添加 virtual 关键字声明为虚函数，子类添加 override 关键字指明重写</p>
+</blockquote>
+<h1 id="Interface-接口"><a href="#Interface-接口" class="headerlink" title="Interface / 接口"></a>Interface / 接口</h1><blockquote>
+<p>c#接口也有泛型，实现接口时使用 : + 接口 即可</p>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"></span><br><span class="line"><span class="comment">//This is a basic interface with a single required</span></span><br><span class="line"><span class="comment">//method.</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">IKillable</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Kill</span>(<span class="params"></span>)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//This is a generic interface where T is a placeholder</span></span><br><span class="line"><span class="comment">//for a data type that will be provided by the </span></span><br><span class="line"><span class="comment">//implementing class.</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title">IDamageable</span>&lt;<span class="title">T</span>&gt;</span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Damage</span>(<span class="params">T damageTaken</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Extension-Methods-拓展方法"><a href="#Extension-Methods-拓展方法" class="headerlink" title="Extension Methods / 拓展方法"></a>Extension Methods / 拓展方法</h1><blockquote>
+<p>Extension Methods 拓展方法可以不创建某个类的派生类，也不更改某个类，但是为该类”新增”了公用的方法</p>
+<p><code>注意:</code></p>
+<ol>
+<li>拓展方法需要有一个静态类作容器</li>
+<li>拓展方法本身也为静态方法，但是可以像实例方法一样调用</li>
+<li>拓展方法的参数指定拓展的类型，前需要有关键字this</li>
+<li>拓展方法仍不可访问拓展类的私有成员</li>
+</ol>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Extend</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        Transform trans = GetComponent&lt;Transform&gt;();</span><br><span class="line">        trans.Logout();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title">Container</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Logout</span>(<span class="params"><span class="keyword">this</span> Transform trans</span>)</span> &#123;</span><br><span class="line">        Debug.Log(<span class="string">&quot;Tranform 类中被\&quot;添加\&quot;了这个方法啦！&quot;</span>);</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Lists-and-Dictionaries-列表与字典"><a href="#Lists-and-Dictionaries-列表与字典" class="headerlink" title="Lists and Dictionaries / 列表与字典"></a>Lists and Dictionaries / 列表与字典</h1><blockquote>
+<p>List 为动态数组，以泛型方式创建，并制定元素类型，提供Add，Remove，Sort，Clear等接口</p>
+<p>Dictionarie 类似于map，以键值对形式存储元素</p>
+<p><code>注意:</code></p>
+<ol>
+<li>需要先引用命名空间 System.Collections.Generic;</li>
+</ol>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">SomeClass</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span> (<span class="params"></span>) </span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="comment">//This is how you create a list. Notice how the type</span></span><br><span class="line">        <span class="comment">//is specified in the angle brackets (&lt; &gt;).</span></span><br><span class="line">        List&lt;BadGuy&gt; badguys = <span class="keyword">new</span> List&lt;BadGuy&gt;();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//Here you add 3 BadGuys to the List</span></span><br><span class="line">        badguys.Add( <span class="keyword">new</span> BadGuy(<span class="string">&quot;Harvey&quot;</span>, <span class="number">50</span>));</span><br><span class="line">        badguys.Add( <span class="keyword">new</span> BadGuy(<span class="string">&quot;Magneto&quot;</span>, <span class="number">100</span>));</span><br><span class="line">        badguys.Add( <span class="keyword">new</span> BadGuy(<span class="string">&quot;Pip&quot;</span>, <span class="number">5</span>));</span><br><span class="line"></span><br><span class="line">        badguys.Sort();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">foreach</span>(BadGuy guy <span class="keyword">in</span> badguys)</span><br><span class="line">        &#123;</span><br><span class="line">            print (guy.name + <span class="string">&quot; &quot;</span> + guy.power);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//This clears out the list so that it is</span></span><br><span class="line">        <span class="comment">//empty.</span></span><br><span class="line">        badguys.Clear();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Dictionarie</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">SomeOtherClass</span> : <span class="title">MonoBehaviour</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span> (<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        <span class="comment">//This is how you create a Dictionary. Notice how this takes</span></span><br><span class="line">        <span class="comment">//two generic terms. In this case you are using a string and a</span></span><br><span class="line">        <span class="comment">//BadGuy as your two values.</span></span><br><span class="line">        Dictionary&lt;<span class="built_in">string</span>, BadGuy&gt; badguys = <span class="keyword">new</span> Dictionary&lt;<span class="built_in">string</span>, BadGuy&gt;();</span><br><span class="line"></span><br><span class="line">        BadGuy bg1 = <span class="keyword">new</span> BadGuy(<span class="string">&quot;Harvey&quot;</span>, <span class="number">50</span>);</span><br><span class="line">        BadGuy bg2 = <span class="keyword">new</span> BadGuy(<span class="string">&quot;Magneto&quot;</span>, <span class="number">100</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//You can place variables into the Dictionary with the</span></span><br><span class="line">        <span class="comment">//Add() method.</span></span><br><span class="line">        badguys.Add(<span class="string">&quot;gangster&quot;</span>, bg1);</span><br><span class="line">        badguys.Add(<span class="string">&quot;mutant&quot;</span>, bg2);</span><br><span class="line"></span><br><span class="line">        BadGuy magneto = badguys[<span class="string">&quot;mutant&quot;</span>];</span><br><span class="line"></span><br><span class="line">        BadGuy temp = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//This is a safer, but slow, method of accessing</span></span><br><span class="line">        <span class="comment">//values in a dictionary.</span></span><br><span class="line">        <span class="keyword">if</span>(badguys.TryGetValue(<span class="string">&quot;birds&quot;</span>, <span class="keyword">out</span> temp))</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//success!</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">//failure!</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<hr>
+<p>2022/1/6 21:48</p>
+<h1 id="Coroutines-协程"><a href="#Coroutines-协程" class="headerlink" title="Coroutines / 协程"></a>Coroutines / 协程</h1><blockquote>
+<p>协程本质上是一个用返回类型 IEnumerator 声明的函数，并在主体的某个位置包含 yield return 语句</p>
+<p>yield return null; 是暂停执行下一帧恢复的调用点</p>
+<p>要将协程设置为 运行/停止 态，需要使用 StartCoroutine()  / StopCoroutine() / StopAllCoroutines()</p>
+</blockquote>
+<ul>
+<li><p>StartCoroutine(string name, object parameter = null)</p>
+<blockquote>
+<p>使用字符串类启动具有特定名称的协程并可以使用相应的 StopCoroutine() 来停止该协程的执行，同时可以指定参数 parameter </p>
+</blockquote>
+</li>
+<li><p>StopCoroutine(string name)</p>
+</li>
+<li><p>StopAllCoroutines()</p>
+<blockquote>
+<p>停止该行为上运行的所有协程</p>
+</blockquote>
+</li>
+<li><p>WaitForSeconds(float time)</p>
+<blockquote>
+<p>使用缩放时间来使协程暂停指定秒数</p>
+<p><code>注意:</code></p>
+<ol>
+<li>实际暂停时间等于 给定时间 * Time.timeScale</li>
+<li>其只能与 yield 语句结合使用，暂停时间过后，继续从当前位置执行</li>
+</ol>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Coroutines</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        StartCoroutine(<span class="string">&quot;MoveTo&quot;</span>, target);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">IEnumerator <span class="title">MoveTo</span>(<span class="params">Transform target</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (Vector3.Distance(transform.position, target.position) &gt; <span class="number">1f</span>) &#123;</span><br><span class="line">            print(transform.position - target.position);</span><br><span class="line">            transform.position = Vector3.Lerp(transform.position, target.position, speed * Time.deltaTime);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">yield</span> <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        print(<span class="string">&quot;Reached the target.&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">yield</span> <span class="keyword">return</span> <span class="keyword">new</span> <span class="title">WaitForSeconds</span>(<span class="params"><span class="number">1f</span></span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Transform target;</span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">float</span> speed = <span class="number">1f</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Quaternions-四元数"><a href="#Quaternions-四元数" class="headerlink" title="Quaternions / 四元数"></a>Quaternions / 四元数</h1><blockquote>
+<p>Quaternions 用来管理旋转，不要轻易改变，但是可以通过unity提供的相应接口完成旋转管理</p>
+</blockquote>
+<ul>
+<li><p>Quaternion.identity</p>
+<blockquote>
+<p><code>U3D Document : It Effectively set its Euler rotation to (0,0,0) or no rotation.</code></p>
+<p>设置一个对象的 rotation 属性为 Quaternion.identity，即无旋转，欧拉角值为 (0,0,0)</p>
+</blockquote>
+</li>
+<li><p>Quaternion.LookRotation (Vector3 forward, Vector3 upwards = Vector3.up)</p>
+<blockquote>
+<p><code>U3D Document : Creates a rotation with the specified </code>forward<code>and</code>upwards<code> directions.</code></p>
+<p>暂略，有点懵</p>
+</blockquote>
+</li>
+<li><p>Quaternion.Slerp (Quaternion a, Quaternion b, float t)</p>
+<blockquote>
+<p><code>U3D Document : Quaternion A quaternion spherically interpolated between quaternions a and b. The parameter t is clamped to the range [0, 1]，If the value of the parameter is close to 0, the output will be close to a, if it is close to 1, the output will be close to b.</code></p>
+<p>非线性插值，可以按比例进行球形插值，t的范围为[0,1]，t越接近0，插值越接近a，t越接近1，插值越接近b</p>
+</blockquote>
+</li>
+</ul>
+<h1 id="Delegates-委托"><a href="#Delegates-委托" class="headerlink" title="Delegates / 委托"></a>Delegates / 委托</h1><blockquote>
+<p>委托是存有对某个 方法 引用的引用类型变量</p>
+</blockquote>
+<h2 id="Declaration-声明"><a href="#Declaration-声明" class="headerlink" title="Declaration / 声明"></a>Declaration / 声明</h2><blockquote>
+<p>delegate 关键字可以声明可由该委托引用的方法</p>
+<p><code>注意:</code></p>
+<ol>
+<li>委托与其可引用的方法具有相同的函数签名</li>
+</ol>
+</blockquote>
+<h2 id="Instantiation-实例化"><a href="#Instantiation-实例化" class="headerlink" title="Instantiation / 实例化"></a>Instantiation / 实例化</h2><blockquote>
+<p>委托对象的实例化必须通过 new 创建，并且初始化时给定需要引用的方法名即可</p>
+</blockquote>
+<h2 id="Multicasting-of-a-Delegate-委托的多播"><a href="#Multicasting-of-a-Delegate-委托的多播" class="headerlink" title="Multicasting of a Delegate / 委托的多播"></a>Multicasting of a Delegate / 委托的多播</h2><blockquote>
+<p>+ 可用于委托的合并，一个合并委托将调用它所合并的委托</p>
+<p>- 可用于合并委托的移除</p>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Delegates</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="built_in">delegate</span> <span class="keyword">void</span> <span class="title">Func</span>(<span class="params"><span class="built_in">int</span> param</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Start is called before the first frame update</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        Func func1 = <span class="keyword">new</span> Func(printLog);</span><br><span class="line">        func1(<span class="number">1</span>);</span><br><span class="line">        func1 += printLoggg;</span><br><span class="line">        func1(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">printLog</span>(<span class="params"><span class="built_in">int</span> param</span>)</span> &#123;</span><br><span class="line">        Debug.Log(<span class="string">&quot;printLog() 被调用!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">printLoggg</span>(<span class="params"><span class="built_in">int</span> param</span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        Debug.Log(<span class="string">&quot;printLoggg() 被调用!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Attributes-特性"><a href="#Attributes-特性" class="headerlink" title="Attributes / 特性"></a>Attributes / 特性</h1><blockquote>
+<p><code>U3D Document : Attributes allow you to attach additional behavior to the methods and variables you create.</code></p>
+<p>Attributes 允许你赋予创建的变量或者方法特别的行为</p>
+<p><code>注意:</code></p>
+<ol>
+<li>特性书写形式为 []，若带参数则可以使用()指出</li>
+</ol>
+</blockquote>
+<ul>
+<li><p>Range</p>
+<blockquote>
+<p>[Range(min,max)] 可以在 inspectors 面板中显示可调整的滚动条来设置变量的大小0</p>
+</blockquote>
+</li>
+<li><p>ExecuteInEditMode</p>
+<blockquote>
+<p>[ExecuteInEditMode] 可以使脚本在非运行模式下被执行</p>
+<p><code>注意:</code></p>
+<ol>
+<li>执行结果将是不可逆转的永久性的，需要注意该特性的执行后果</li>
+</ol>
+</blockquote>
+</li>
+</ul>
+<h1 id="Events-事件"><a href="#Events-事件" class="headerlink" title="Events / 事件"></a>Events / 事件</h1><blockquote>
+<p>事件使用 Publisher / Subscriber 发布者/订阅者 机制，使得订阅了发布者的订阅者在发布者发生变动时，作出响应的事件处理</p>
+<p>delegate 关键字完成委托的创建，event 关键字完成事件的创建</p>
+</blockquote>
+<h2 id="Publisher-发布者"><a href="#Publisher-发布者" class="headerlink" title="Publisher / 发布者"></a>Publisher / 发布者</h2><blockquote>
+<p>创建事件处理任务的委托，并创建事件</p>
+<p>设置相应的事件通知函数，完成对事件的调用，进而完成通知</p>
+<p>作出改动时完成事件通知函数的调用</p>
+<p><code>注意:</code></p>
+<ol>
+<li>事件一般设置为共有的静态成员</li>
+</ol>
+</blockquote>
+<h2 id="Subscriber-订阅者"><a href="#Subscriber-订阅者" class="headerlink" title="Subscriber / 订阅者"></a>Subscriber / 订阅者</h2><blockquote>
+<p>设置与委托相对应的事件处理函数</p>
+<p>设置相应的接口完成对事件的订阅与取消订阅</p>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> System.Collections;</span><br><span class="line"><span class="keyword">using</span> System.Collections.Generic;</span><br><span class="line"><span class="keyword">using</span> UnityEngine;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">EventsPublisher</span> : <span class="title">MonoBehaviour</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//委托</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="built_in">delegate</span> <span class="keyword">void</span> <span class="title">EventDispose</span>(<span class="params"></span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//事件</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> EventDispose eventDispose;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//事件通知函数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Notify</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (eventDispose != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">//调用已订阅的类的相应事件处理函数</span></span><br><span class="line">            eventDispose();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setValue</span>(<span class="params"><span class="built_in">float</span> <span class="keyword">value</span></span>)</span> &#123;</span><br><span class="line">        elem = <span class="keyword">value</span>;</span><br><span class="line">        Notify();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Start is called before the first frame update </span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Start</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        EventSubscriber SubObj = <span class="keyword">new</span> EventSubscriber();</span><br><span class="line">        SubObj.Subscribe();</span><br><span class="line"></span><br><span class="line">        EventsPublisher PubObj = <span class="keyword">new</span> EventsPublisher();</span><br><span class="line">        PubObj.setValue(<span class="number">100f</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Update is called once per frame</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Update</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="built_in">float</span> elem;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">EventSubscriber</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//订阅事件</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Subscribe</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        EventsPublisher.eventDispose += <span class="keyword">new</span> EventsPublisher.EventDispose(Dispose);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//取消订阅事件</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">CancelSubscribe</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>    &#123;</span><br><span class="line">        EventsPublisher.eventDispose -= <span class="keyword">new</span> EventsPublisher.EventDispose(Dispose);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//事件处理函数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Dispose</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        Debug.Log(<span class="string">&quot;事件被触发啦!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<hr>
+<p><strong>Question:</strong> </p>
+<ul>
+<li>Quaternions / 四元数 以后细锁</li>
+</ul>
+<hr>
+<p>2022/1/7 15:00</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">YunDid</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2022/03/22/Unity/Unity_%E7%BC%96%E7%A8%8B/">http://example.com/2022/03/22/Unity/Unity_%E7%BC%96%E7%A8%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">YunDid's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Unity-C/">Unity - C#</a></div><div class="post_share"><div class="social-share" data-image="/img/ma3.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/03/22/Unity/Unity_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F/"><img class="prev-cover" src="/img/ma3.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Unity - Animation Systems</div></div></a></div><div class="next-post pull-right"><a href="/2022/03/22/Unity/Unity_%E5%9F%BA%E7%A1%80/"><img class="next-cover" src="/img/ma3.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Unity - 编程基础</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/03/22/Unity/Unity_基础/" title="Unity - 编程基础"><img class="cover" src="/img/ma3.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-03-22</div><div class="title">Unity - 编程基础</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/1.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">YunDid</div><div class="author-info__description">欢迎来到 YunDid's Blog！有疑问可以到 “留言板” 提问！^_^</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">46</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/YunDid"><i class="fab fa-github"></i><span>博主的GitHub首页</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/YunDid" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:512862613@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">萌新一枚~</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Some-Keys-for-Programming-%E5%85%B3%E9%94%AE%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">Some Keys for Programming &#x2F; 关键点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#The-Current-Progress-%E5%BD%93%E5%89%8D%E8%BF%9B%E5%BA%A6"><span class="toc-number">2.</span> <span class="toc-text">The Current Progress &#x2F; 当前进度</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ForeachLoop-%E5%BE%AA%E7%8E%AF"><span class="toc-number">3.</span> <span class="toc-text">ForeachLoop &#x2F; 循环</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Awake-and-Start-%E5%88%9D%E5%A7%8B%E5%8C%96%E6%96%B9%E6%B3%95"><span class="toc-number">4.</span> <span class="toc-text">Awake and Start &#x2F; 初始化方法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#FixUpdate-and-Update-%E6%9B%B4%E6%96%B0%E6%96%B9%E6%B3%95"><span class="toc-number">5.</span> <span class="toc-text">FixUpdate and Update &#x2F; 更新方法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Enabling-and-Disabling-Components-%E5%90%AF%E7%94%A8%E7%A6%81%E7%94%A8%E7%BB%84%E4%BB%B6"><span class="toc-number">6.</span> <span class="toc-text">Enabling and Disabling Components &#x2F; 启用禁用组件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Activating-GameObjects-%E6%BF%80%E6%B4%BB%E6%B8%B8%E6%88%8F%E5%AF%B9%E8%B1%A1"><span class="toc-number">7.</span> <span class="toc-text">Activating GameObjects &#x2F; 激活游戏对象</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Translate-and-Rotate-func-%E5%8F%98%E6%8D%A2%E4%B8%8E%E6%97%8B%E8%BD%AC%E6%96%B9%E6%B3%95"><span class="toc-number">8.</span> <span class="toc-text">Translate and Rotate func &#x2F; 变换与旋转方法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Camera-LookAt-%E6%9C%9D%E5%90%91"><span class="toc-number">9.</span> <span class="toc-text">Camera LookAt &#x2F; 朝向</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Linear-Interpolation-%E7%BA%BF%E6%80%A7%E6%8F%92%E5%80%BC"><span class="toc-number">10.</span> <span class="toc-text">Linear Interpolation &#x2F; 线性插值</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Destroy-%E9%94%80%E6%AF%81"><span class="toc-number">11.</span> <span class="toc-text">Destroy &#x2F; 销毁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#GetButton-%E5%92%8C-GetKey-%E8%8E%B7%E5%8F%96%E8%BE%93%E5%85%A5"><span class="toc-number">12.</span> <span class="toc-text">GetButton 和 GetKey &#x2F; 获取输入</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#GetAxis-%E8%8E%B7%E5%8F%96%E8%BD%B4"><span class="toc-number">13.</span> <span class="toc-text">GetAxis &#x2F; 获取轴</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#OnMouseDown-%E9%BC%A0%E6%A0%87%E7%82%B9%E5%87%BB"><span class="toc-number">14.</span> <span class="toc-text">OnMouseDown &#x2F; 鼠标点击</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#GetComponent-%E8%8E%B7%E5%8F%96%E7%BB%84%E4%BB%B6"><span class="toc-number">15.</span> <span class="toc-text">GetComponent &#x2F; 获取组件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DeltaTime-%E6%97%B6%E9%97%B4%E5%A2%9E%E9%87%8F"><span class="toc-number">16.</span> <span class="toc-text">DeltaTime &#x2F; 时间增量</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Instantiate-%E8%BF%90%E8%A1%8C%E6%97%B6%E5%AE%9E%E4%BE%8B%E5%8C%96"><span class="toc-number">17.</span> <span class="toc-text">Instantiate &#x2F; 运行时实例化</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Invoke-%E5%BB%B6%E6%97%B6%E8%B0%83%E7%94%A8"><span class="toc-number">18.</span> <span class="toc-text">Invoke &#x2F; 延时调用</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Properties-%E5%B1%9E%E6%80%A7"><span class="toc-number">19.</span> <span class="toc-text">Properties &#x2F; 属性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Generics-%E6%B3%9B%E5%9E%8B"><span class="toc-number">20.</span> <span class="toc-text">Generics &#x2F; 泛型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Member-Hiding-%E6%88%90%E5%91%98%E9%9A%90%E8%97%8F"><span class="toc-number">21.</span> <span class="toc-text">Member Hiding &#x2F; 成员隐藏</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Overriding-%E9%87%8D%E5%86%99"><span class="toc-number">22.</span> <span class="toc-text">Overriding &#x2F; 重写</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Interface-%E6%8E%A5%E5%8F%A3"><span class="toc-number">23.</span> <span class="toc-text">Interface &#x2F; 接口</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Extension-Methods-%E6%8B%93%E5%B1%95%E6%96%B9%E6%B3%95"><span class="toc-number">24.</span> <span class="toc-text">Extension Methods &#x2F; 拓展方法</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Lists-and-Dictionaries-%E5%88%97%E8%A1%A8%E4%B8%8E%E5%AD%97%E5%85%B8"><span class="toc-number">25.</span> <span class="toc-text">Lists and Dictionaries &#x2F; 列表与字典</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Coroutines-%E5%8D%8F%E7%A8%8B"><span class="toc-number">26.</span> <span class="toc-text">Coroutines &#x2F; 协程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Quaternions-%E5%9B%9B%E5%85%83%E6%95%B0"><span class="toc-number">27.</span> <span class="toc-text">Quaternions &#x2F; 四元数</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Delegates-%E5%A7%94%E6%89%98"><span class="toc-number">28.</span> <span class="toc-text">Delegates &#x2F; 委托</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Declaration-%E5%A3%B0%E6%98%8E"><span class="toc-number">28.1.</span> <span class="toc-text">Declaration &#x2F; 声明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Instantiation-%E5%AE%9E%E4%BE%8B%E5%8C%96"><span class="toc-number">28.2.</span> <span class="toc-text">Instantiation &#x2F; 实例化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Multicasting-of-a-Delegate-%E5%A7%94%E6%89%98%E7%9A%84%E5%A4%9A%E6%92%AD"><span class="toc-number">28.3.</span> <span class="toc-text">Multicasting of a Delegate &#x2F; 委托的多播</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Attributes-%E7%89%B9%E6%80%A7"><span class="toc-number">29.</span> <span class="toc-text">Attributes &#x2F; 特性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Events-%E4%BA%8B%E4%BB%B6"><span class="toc-number">30.</span> <span class="toc-text">Events &#x2F; 事件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Publisher-%E5%8F%91%E5%B8%83%E8%80%85"><span class="toc-number">30.1.</span> <span class="toc-text">Publisher &#x2F; 发布者</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Subscriber-%E8%AE%A2%E9%98%85%E8%80%85"><span class="toc-number">30.2.</span> <span class="toc-text">Subscriber &#x2F; 订阅者</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/02/27/Matlab/Matlab/" title="Matlab 入门"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Matlab 入门"/></a><div class="content"><a class="title" href="/2023/02/27/Matlab/Matlab/" title="Matlab 入门">Matlab 入门</a><time datetime="2023-02-27T01:30:00.000Z" title="发表于 2023-02-27 09:30:00">2023-02-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/Animation/CenterAI_%E7%A5%9E%E7%BB%8F%E7%8A%B6%E6%80%81%E6%9C%BA/" title="Siggraph Asia 2019 - 神经状态机"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Siggraph Asia 2019 - 神经状态机"/></a><div class="content"><a class="title" href="/2022/03/22/Animation/CenterAI_%E7%A5%9E%E7%BB%8F%E7%8A%B6%E6%80%81%E6%9C%BA/" title="Siggraph Asia 2019 - 神经状态机">Siggraph Asia 2019 - 神经状态机</a><time datetime="2022-03-22T02:40:00.000Z" title="发表于 2022-03-22 10:40:00">2022-03-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/" title="YumiGame - Ue4 - GamePlay"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="YumiGame - Ue4 - GamePlay"/></a><div class="content"><a class="title" href="/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/" title="YumiGame - Ue4 - GamePlay">YumiGame - Ue4 - GamePlay</a><time datetime="2022-03-22T02:30:00.000Z" title="发表于 2022-03-22 10:30:00">2022-03-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/Unreal/Ue4_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E6%9C%AA%E5%AE%8C/" title="Ue4 - Animation System"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Ue4 - Animation System"/></a><div class="content"><a class="title" href="/2022/03/22/Unreal/Ue4_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E6%9C%AA%E5%AE%8C/" title="Ue4 - Animation System">Ue4 - Animation System</a><time datetime="2022-03-22T02:28:00.000Z" title="发表于 2022-03-22 10:28:00">2022-03-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/Unity/Unity_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F/" title="Unity - Animation Systems"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Unity - Animation Systems"/></a><div class="content"><a class="title" href="/2022/03/22/Unity/Unity_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F/" title="Unity - Animation Systems">Unity - Animation Systems</a><time datetime="2022-03-22T02:27:00.000Z" title="发表于 2022-03-22 10:27:00">2022-03-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By YunDid</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"><i class="fab fa-qq"></i> 512862613 | <i class="fab fa-weixin"></i> Mmm-myy1</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">簡</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: 'RUIbtPgCc0o0TGaeqMWlX9P5-gzGzoHsz',
+      appKey: 'PaoiG1dlQjiDQAVRBexH6KkR',
+      placeholder: 'Please leave your footprints',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+      requiredFields: ["nick,mail"],
+      visitor: false
+    }, null))
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Valine' === 'Valine' || !false) {
+  if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script src="https://cdn.jsdelivr.net/npm/live2d-widget@^3.1.3/lib/L2Dwidget.min.js"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"superSample":2,"position":"left","width":150,"height":300,"hOffset":20,"vOffset":-90},"mobile":{"show":true,"scale":1},"react":{"opacityDefault":0.3,"opacityOnHover":0.3,"opacity":0.95},"log":false});</script></body></html>

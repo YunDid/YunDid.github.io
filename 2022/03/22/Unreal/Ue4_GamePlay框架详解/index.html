@@ -1,0 +1,557 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YumiGame - Ue4 - GamePlay | YunDid's Blog</title><meta name="keywords" content="GamePlay"><meta name="author" content="YunDid"><meta name="copyright" content="YunDid"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="注意: 类体结构以旧版本为主，目前以能看懂源码为主，具体深入到某一个类时，以源码为主！ Outline View &#x2F; 大纲视图 本文将以大纲为准，逐层分析.  MVC in Ue_GamePlay Necessary Class in Ue_GamePlay ——-世界构建 - 表现——-UObject 元数据，反射生成，GC垃圾回收，序列化，编辑器可见，Class Default Object.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="YumiGame - Ue4 - GamePlay">
+<meta property="og:url" content="http://example.com/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="YunDid&#39;s Blog">
+<meta property="og:description" content="注意: 类体结构以旧版本为主，目前以能看懂源码为主，具体深入到某一个类时，以源码为主！ Outline View &#x2F; 大纲视图 本文将以大纲为准，逐层分析.  MVC in Ue_GamePlay Necessary Class in Ue_GamePlay ——-世界构建 - 表现——-UObject 元数据，反射生成，GC垃圾回收，序列化，编辑器可见，Class Default Object.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/ma3.jpg">
+<meta property="article:published_time" content="2022-03-22T02:30:00.000Z">
+<meta property="article:modified_time" content="2022-03-22T02:42:24.658Z">
+<meta property="article:author" content="YunDid">
+<meta property="article:tag" content="GamePlay">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/ma3.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: {"defaultEncoding":1,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: YunDid","link":"链接: ","source":"来源: YunDid's Blog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-22 10:42:24'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="author-avatar"><img class="avatar-img" src="/img/1.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">46</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">15</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/ma3.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">YunDid's Blog</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">YumiGame - Ue4 - GamePlay</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-03-22T02:30:00.000Z" title="发表于 2022-03-22 10:30:00">2022-03-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-22T02:42:24.658Z" title="更新于 2022-03-22 10:42:24">2022-03-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/YumiGame/">YumiGame</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="YumiGame - Ue4 - GamePlay"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span><span class="post-meta-separator">|</span><span class="post-meta-commentcount"><i class="far fa-comments fa-fw post-meta-icon"></i><span class="post-meta-label">评论数:</span><a href="/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/#post-comment" itemprop="discussionUrl"><span class="valine-comment-count" data-xid="/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/" itemprop="commentCount"></span></a></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>注意: 类体结构以旧版本为主，目前以能看懂源码为主，具体深入到某一个类时，以源码为主！</p>
+<h1 id="Outline-View-大纲视图"><a href="#Outline-View-大纲视图" class="headerlink" title="Outline View / 大纲视图"></a>Outline View / 大纲视图</h1><blockquote>
+<p>本文将以大纲为准，逐层分析.</p>
+</blockquote>
+<h2 id="MVC-in-Ue-GamePlay"><a href="#MVC-in-Ue-GamePlay" class="headerlink" title="MVC in Ue_GamePlay"></a>MVC in Ue_GamePlay</h2><p><img src="/images/YumiImages/MVC_GamePlay.jpg" alt="MVC_GamePlay"></p>
+<h2 id="Necessary-Class-in-Ue-GamePlay"><a href="#Necessary-Class-in-Ue-GamePlay" class="headerlink" title="Necessary Class in Ue_GamePlay"></a>Necessary Class in Ue_GamePlay</h2><p><img src="/images/YumiImages/Detailes.jpg" alt="Detailes"></p>
+<h1 id="——-世界构建-表现——"><a href="#——-世界构建-表现——" class="headerlink" title="——-世界构建 - 表现——-"></a>——-世界构建 - 表现——-</h1><h1 id="UObject"><a href="#UObject" class="headerlink" title="UObject"></a>UObject</h1><blockquote>
+<p>元数据，反射生成，GC垃圾回收，序列化，编辑器可见，Class Default Object.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Class UObject ◇-&gt; UClass</span><br><span class="line">-------------</span><br><span class="line">GC &#x2F; 垃圾回收</span><br><span class="line">MetaData &#x2F; 元数据</span><br><span class="line">Reflection &#x2F; 生成</span><br><span class="line">Serialization &#x2F; 序列化</span><br><span class="line">Editable &#x2F; 编辑器可见</span><br><span class="line">Class Default Object</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+<h1 id="Component-组件"><a href="#Component-组件" class="headerlink" title="Component / 组件"></a>Component / 组件</h1><blockquote>
+<p>Ue 借鉴 Unity 的组件式构建对象的方法，通过 UActorComponent 的派生类来组装 Actor 的各项功能.</p>
+</blockquote>
+<h2 id="SceneComponent-场景组件"><a href="#SceneComponent-场景组件" class="headerlink" title="SceneComponent / 场景组件"></a>SceneComponent / 场景组件</h2><blockquote>
+<p>Transform 变换仅存放于该组件中.</p>
+<p>仅 SceneComponent 的组件之间可相互嵌套.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>AActor::AttachToComponent(…)，通过子组件完成组件父子层级的搭建.</li>
+<li>一个 Actor 可能包含多个 SceneComponent 组件，需要通过参数指定具体应附加到哪一个插槽，跟随父 Actor 哪一个 SceneComponent 的变换，其本身变换通过在 Location,Roator,Scale上应用 Rule 来计算.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Class USceneComponent -&gt; UActorComponent</span><br><span class="line">-------------</span><br><span class="line">USceneComponent* AttachParent;</span><br><span class="line">TArray&lt;USceneComponent*&gt; AttachChildren;</span><br><span class="line">FTransform ComponentToWorld; &#x2F; 变换</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+<h2 id="ActorComponent-Actor-组件"><a href="#ActorComponent-Actor-组件" class="headerlink" title="ActorComponent / Actor 组件"></a>ActorComponent / Actor 组件</h2><blockquote>
+<p>ActorComponent 仅仅能附加于 Actor 对象下，不能够相互嵌套.</p>
+<p><code>注意 : </code></p>
+<ol>
+<li>Ue 更推崇使组件功能单一，不希望出现大管家之类的组件.</li>
+<li>Ue 仍不希望游戏逻辑代码出现在组件中，而 Unity 的脚本作组件挂载.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Class UActorComponent -&gt; UObject</span><br><span class="line">-------------</span><br><span class="line">void ReceiveTick(float DeltaSeconds); &#x2F; 组件 Tick&#x2F;心跳</span><br><span class="line">-------------</span><br><span class="line">AActor* OwnerPrivate; &#x2F; 唯一挂载的 Actor</span><br><span class="line">UWorld* WorldPrivate; &#x2F; 所处的 World</span><br></pre></td></tr></table></figure>
+
+<h2 id="Actor-and-Component-关系"><a href="#Actor-and-Component-关系" class="headerlink" title="Actor and Component / 关系"></a>Actor and Component / 关系</h2><blockquote>
+<p>TSet&lt;UActorComponent*&gt; OwnedComponents，Actor 通过集合保存着其在游戏 当前Level 下拥有的所有组件，其中一个组件作 RootComponent，一般为 SceneComponent.</p>
+<p>TArray&lt;UActorComponent*&gt; InstanceComponents ，Actor 通过 TArray 保存着所有的实例化组件(创建蓝图类时定义的组件).</p>
+</blockquote>
+<h1 id="Actor"><a href="#Actor" class="headerlink" title="Actor"></a>Actor</h1><blockquote>
+<p>Replication / 网络复制，Spwan / 创建销毁，Tick / 心跳.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Class AActor -&gt; UObject</span><br><span class="line">-------------</span><br><span class="line">TArray&lt;AActor*&gt; Children; &#x2F; 父子嵌套</span><br><span class="line">void Tick(float DeltaSeconds); &#x2F; Tick 心跳</span><br><span class="line">-------------</span><br><span class="line">AActor* Owner;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Actor-Hierarchy-层级"><a href="#Actor-Hierarchy-层级" class="headerlink" title="Actor Hierarchy / 层级"></a>Actor Hierarchy / 层级</h2><blockquote>
+<p>TArray&lt;AActor*&gt; Children，Actor 中存放了子 Actors 的数组.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>AActor::AttachToActor()，通过子 Actor 完成 Actor 父子关系的搭建.</li>
+</ol>
+</blockquote>
+<h2 id="Tranform-变换"><a href="#Tranform-变换" class="headerlink" title="Tranform / 变换"></a>Tranform / 变换</h2><blockquote>
+<p>在 Unity 中通过带 transform/变换 的 GameObject 来代表游戏中的对象.</p>
+<p>Ue 中的 Actor 不仅仅是3D游戏对象的表述，而还可代表整个世界的运行规则等种种元素，其变换属性封装在 SceneComponent 中，即使是 Actor 的 GetActorLocation,SetActorLocation 等操作 transform 的方法，最终都是转发到 SceneComponent 下执行的.</p>
+</blockquote>
+<h1 id="Pawn-“MVC-V”"><a href="#Pawn-“MVC-V”" class="headerlink" title="Pawn “MVC - V”"></a>Pawn “MVC - V”</h1><blockquote>
+<p>Pawn 强调可被控制的概念，提供了 可被 Controller 控制的接口，由于 Ue 做 Fps 起家，因此还给 Pawn 提供了物理碰撞，基本移动的接口.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>Pawn 仅表述了能走，但是怎么走由 Controller 控制，提线木偶的关系.</li>
+<li>Actor 有 InputComponent，但不用于移动逻辑控制，仅用于响应输入，低阶逻辑控制由 Pawn 实现，更高级的由 Controller 实现.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Class APawn -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">TSubclassOf&lt;AController&gt; AIControllerClass;</span><br><span class="line">uint32 bInputEnabled;1;</span><br><span class="line">FVector ControlInputVector;</span><br><span class="line">-------------</span><br><span class="line">APlayerState* PlayerState;</span><br><span class="line">AController* Controller;</span><br></pre></td></tr></table></figure>
+
+<h2 id="ADefaultPawn"><a href="#ADefaultPawn" class="headerlink" title="ADefaultPawn"></a>ADefaultPawn</h2><blockquote>
+<p>携带基本逻辑控制能力的 Pawn.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Class ADefaultPawn -&gt; APawn -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">USphereComponent* CollisionComponent; &#x2F; Pawn 物理碰撞</span><br><span class="line">UPawnMovementComponent* MovementComponent; &#x2F;Pawn 基本移动</span><br><span class="line">StaticMeshComponent* Mesh; &#x2F; Pawn显示</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+<h2 id="ASpectatorPawn"><a href="#ASpectatorPawn" class="headerlink" title="ASpectatorPawn"></a>ASpectatorPawn</h2><blockquote>
+<p>观战玩家也处于地图中，但无需表示，只需提供摄像机的控制能力.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Class ASpectatorPawn -&gt; ADefaultPawn -&gt; APawn -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">USpectatorPawnMovement* MovementComponent; &#x2F; 无重力漫游</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+<h2 id="ACharacter"><a href="#ACharacter" class="headerlink" title="ACharacter"></a>ACharacter</h2><blockquote>
+<p>角色移动特化.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Class ACharacter -&gt; APawn -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">USkeletalMeshComponent* Mesh; &#x2F; 骨架网格体</span><br><span class="line">CharacterMovementComponent* CharacterMovement; &#x2F; 角色特性移动组件</span><br><span class="line">CapsuleComponent*  CapsuleComponent; &#x2F; 胶囊体组件</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+<h1 id="Level-关卡"><a href="#Level-关卡" class="headerlink" title="Level / 关卡"></a>Level / 关卡</h1><blockquote>
+<p>Level 相当于 Actors 的容器.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Class ULevel -&gt; UObject</span><br><span class="line">-------------</span><br><span class="line">TArray&lt;AActor*&gt; Actors; &#x2F; Level 下的所有 Actors</span><br><span class="line">ALevelScriptActor* LevelScriptActor; &#x2F; 关卡蓝图</span><br><span class="line">TArray&lt;UModelComponent*&gt; ModelComponents; &#x2F; Level 下的基元 BSP Geometry</span><br><span class="line">-------------</span><br><span class="line">AWorldSettings* WorldSettings(Actors[0]);</span><br></pre></td></tr></table></figure>
+
+<h1 id="World-世界"><a href="#World-世界" class="headerlink" title="World / 世界"></a>World / 世界</h1><blockquote>
+<p>对所有 Levels 的组装.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>可以以 SubLevel 方式进行组装，也可以以 WorldComposition 方式进行组装.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Class UWorld -&gt; UObject</span><br><span class="line">-------------</span><br><span class="line">TArray&lt;ULevel*&gt; Levels; &#x2F; World 下的所有 Levels</span><br><span class="line">AGameMode* AuthorityGameMode; &#x2F; 游戏模式</span><br><span class="line">AGameState* GameState; &#x2F; 游戏状态</span><br><span class="line">UWorldComposition* WorldComposition; &#x2F; Levels 组合</span><br><span class="line">FPhysScene* PhysicsScene; &#x2F; 各 Level 共享的全局物理</span><br><span class="line">-------------</span><br><span class="line">ULevel* PersistentLevel; &#x2F; 主关卡</span><br><span class="line">ULevel* CurrentLevel; &#x2F; 当前关卡</span><br><span class="line">TArray&lt;ULevelStreaming*&gt; StreamingLevels; &#x2F; 动态关卡流</span><br><span class="line">UGameInstance* OwningGameInstance; &#x2F; World 拥有的 GameInstance</span><br><span class="line">TArray&lt;TAutoWeakObjectPtr&lt;AController&gt;&gt; ControllerList;</span><br><span class="line">TArray&lt;TAutoWeakObjectPtr&lt;APlayerController&gt;&gt; PlayerControllerList;</span><br><span class="line">TArray&lt;TAutoWeakObjectPtr&lt;APawn&gt;&gt; PawnList;</span><br></pre></td></tr></table></figure>
+
+<h2 id="PersistentLevel-主关卡"><a href="#PersistentLevel-主关卡" class="headerlink" title="PersistentLevel / 主关卡"></a>PersistentLevel / 主关卡</h2><blockquote>
+<p>即 World 初始加载的默认关卡，每个关卡均有独立的 WorldSettings，而在 World 范围内起作用的配置项需要以 PersistentLevel / 主关卡 为主.</p>
+</blockquote>
+<h2 id="EWorldType-World-类型"><a href="#EWorldType-World-类型" class="headerlink" title="EWorldType / World 类型"></a>EWorldType / World 类型</h2><blockquote>
+<p>World 不仅仅只有一种类型，一个世界也不仅仅只有一个World.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">namespace EWorldType</span><br><span class="line">&#123;</span><br><span class="line">	enum Type</span><br><span class="line">	&#123;</span><br><span class="line">		None,		&#x2F;&#x2F; An untyped world, in most cases this will be the vestigial worlds of streamed in sub-levels</span><br><span class="line">		Game,		&#x2F;&#x2F; The game world</span><br><span class="line">		Editor,		&#x2F;&#x2F; A world being edited in the editor</span><br><span class="line">		PIE,		&#x2F;&#x2F; A Play In Editor world</span><br><span class="line">		Preview,	&#x2F;&#x2F; A preview world for an editor tool</span><br><span class="line">		Inactive	&#x2F;&#x2F; An editor world that was loaded but not currently being edited in the level editor</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="GameInstance-Game-始末"><a href="#GameInstance-Game-始末" class="headerlink" title="GameInstance - Game 始末"></a>GameInstance - Game 始末</h1><blockquote>
+<p>保存当前 World 的 WorldContext，以及其他整个游戏的信息.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>全局的唯一实例，代表着整个游戏的开始与结束.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">UGameInstance| -&gt; UClass | ◇-&gt; FWorldContext</span><br><span class="line">-------------</span><br><span class="line">ULocalPlayer* CreateLocalPlayer(...); &#x2F; 创建 Player</span><br><span class="line">AGameModeBase* CreateGameModeForURL(...); &#x2F; GameMode 的重载修改</span><br><span class="line">-------------</span><br><span class="line">FWorldContext* WorldContext;</span><br><span class="line">TArray&lt;ULocalPlayer*&gt; LocalPlayers; &#x2F; 管理本地 Player</span><br><span class="line">UOnlineSession* OnlineSession; &#x2F; 网络会话管理</span><br></pre></td></tr></table></figure>
+
+<h1 id="Engine"><a href="#Engine" class="headerlink" title="Engine"></a>Engine</h1><blockquote>
+<p>GEngine，源码开始的地方，其引用一个 UEngine.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>World 与 Level 的切换的实际发生地是 Engine.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Class UEngine</span><br><span class="line">-------------</span><br><span class="line">TIndirectArray&lt;FWorldContext&gt; WorldList; &#x2F; 所有 World</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+<h2 id="UGameEngine"><a href="#UGameEngine" class="headerlink" title="UGameEngine"></a>UGameEngine</h2><blockquote>
+<p>一般 GameEngine 下只有一个 WorldContext，直接通过 GameInstance 引用.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Class UGameEngine -&gt; UEngine</span><br><span class="line">-------------</span><br><span class="line">UGameInstance* GameInstance;</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="UEditorEngine"><a href="#UEditorEngine" class="headerlink" title="UEditorEngine"></a>UEditorEngine</h2><blockquote>
+<p>一般有两个 WorldContext，一个用于 EditorWorld，一个用于 PlayWorld / PIE World，通过 WorldContext 下的 GameInstance 间接引用.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Class UGameEngine -&gt; UEngine</span><br><span class="line">-------------</span><br><span class="line">UWorld* PlayWorld;</span><br><span class="line">UWorld* EditorWorld;</span><br><span class="line">TArray&lt;FEditorViewportClient*&gt; AllViewportClients;</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="——-逻辑控制-逻辑——"><a href="#——-逻辑控制-逻辑——" class="headerlink" title="——-逻辑控制 - 逻辑——-"></a>——-逻辑控制 - 逻辑——-</h1><h1 id="WorldContext"><a href="#WorldContext" class="headerlink" title="WorldContext"></a>WorldContext</h1><blockquote>
+<p>用于管理跟踪 World 的管理类.</p>
+<p>可以保存切换 World 的过程信息，与目标 World 的上下文信息.</p>
+<p>还保存着 World 下 Level 切换的上下文信息.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>WorldContext 可以管理 World 的更替，但是不应由外部直接操作，Ue内部负责.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Class FWorldContext ◇-&gt; UWorld</span><br><span class="line">-------------</span><br><span class="line">UGameInstance* OwningGameInstance; &#x2F; 向上的指针，获取所属的 GameInstance </span><br><span class="line">UWorld* ThisCurrentWorld; &#x2F; 当前 World 类型</span><br><span class="line">UGameViewportClient* GameViewport; &#x2F; 相机相关</span><br><span class="line">-------------</span><br><span class="line">FString TravelURL; &#x2F; 切换的下一目标 Level</span><br><span class="line">uint8 TravelType; &#x2F; 切换的下一目标 Level 类型</span><br></pre></td></tr></table></figure>
+
+<h2 id="Level-Traveling-关卡切换"><a href="#Level-Traveling-关卡切换" class="headerlink" title="Level Traveling / 关卡切换"></a>Level Traveling / 关卡切换</h2><blockquote>
+<p>OpenLevel : </p>
+<p>先设置当前 World 的 WorldContext 中的 TravelURL，然后在 UEngine::TickWorldTravel 中判断 TravelURL 是否非空来真正执行 Level 的切换.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>关卡切换的信息不存放于 World 中，虽然 LoadStreamLevel 在切换时可以存放于 World 中，但是 World 的 PersistentLevel 在切换时，会将当前 World 释放.</li>
+</ol>
+</blockquote>
+<h1 id="GameMode-游戏模式"><a href="#GameMode-游戏模式" class="headerlink" title="GameMode / 游戏模式"></a>GameMode / 游戏模式</h1><blockquote>
+<p>World 下的唯一逻辑操纵者.</p>
+<p>一个 World 下只会有一个 GameMode  实例，即PersistentLevel 下的 GameMode.  </p>
+<p><code>注意:</code></p>
+<ol>
+<li>每个 Level 下也存着独立的 GameMode 实例.</li>
+<li>World 下的 GameMode，将通过 Wolrd 的 PersistentLevel 的 AWorldSettings 上的配置生成.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Class AGameMode -&gt; AInfo -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">void InitGame(...); &#x2F; 初始化游戏</span><br><span class="line">void SetMatchState(...; &#x2F; 设置游戏运行状态</span><br><span class="line">-------------</span><br><span class="line">FName MatchState; &#x2F; 游戏运行状态</span><br><span class="line">AGameSession* GameSession; &#x2F; 游戏会话用于网络联机</span><br><span class="line">AGameState* GameState; &#x2F; 存储游戏状态</span><br><span class="line">uint32 bUseSeamlessTravel ：1; &#x2F; 启用无缝切换</span><br></pre></td></tr></table></figure>
+
+<h2 id="Responsibility-职责"><a href="#Responsibility-职责" class="headerlink" title="Responsibility / 职责"></a>Responsibility / 职责</h2><ol>
+<li><p>Class 登记</p>
+<blockquote>
+<p>记录基本的游戏类型信息，用于在需要时通过 UClass 反射可以自动 Spawn 出对象并添加至关卡中. </p>
+</blockquote>
+</li>
+<li><p>控制游戏内实体的 Spawn</p>
+<blockquote>
+<p>包括 玩家，AI 的加载与释放，生成的位置，所处的状态，数目等等.</p>
+</blockquote>
+</li>
+<li><p>Level 的无缝切换</p>
+<blockquote>
+<p>AGameModeBase::bUseSeamlessTravel = true 后可以实现无缝切换.</p>
+<ol>
+<li>标记出要在过渡关卡中存留的 Actors</li>
+<li>转移至过渡关卡</li>
+<li>标记出要在最终关卡中存留的 Actors</li>
+<li>转移至最终关卡</li>
+</ol>
+<p><code>注意:</code></p>
+<ol>
+<li>为避免同时加载两个大地图，则需要引入很小的过渡关卡作中转，减少转换时的资源损耗.</li>
+<li>若为设置过渡关卡，则默认创建一个空关卡.</li>
+</ol>
+</blockquote>
+</li>
+<li><p>多人游戏的同步</p>
+<blockquote>
+<p>标识整个游戏运行的状态.</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="Travelling-GameMode-模式切换"><a href="#Travelling-GameMode-模式切换" class="headerlink" title="Travelling GameMode / 模式切换"></a>Travelling GameMode / 模式切换</h2><blockquote>
+<p>在关卡切换时，World 下的 GameMode 也会发生变换.</p>
+</blockquote>
+<ul>
+<li><p>非无缝切换</p>
+<blockquote>
+<p>AGameModeBase::bUseSeamlessTravel = false.</p>
+<p>新的 World 加载时，当前的 GameMode 将被释放，根据新 World 的配置生成新的 GameMode.</p>
+</blockquote>
+</li>
+<li><p>无缝切换</p>
+<blockquote>
+<p>AGameModeBase::bUseSeamlessTravel = true.</p>
+<p>CurrentWorld -&gt; TransitionWorld : GameMode 也将被迁移，即 TransitionWorld 下保存着 CurrentWorld 的 GameMode.</p>
+<p>TransitionWorld -&gt; NewWorld : 根据配置重新生成一个 GameMode.</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="GameMode-and-LevelScriptActor"><a href="#GameMode-and-LevelScriptActor" class="headerlink" title="GameMode and LevelScriptActor"></a>GameMode and LevelScriptActor</h2><blockquote>
+<p>GameMode 更注重整个 World 下，所有 Levels 的通用规则与逻辑，如胜利条件，怪物刷新等.</p>
+<p>LevelScriptActor 更注重具体 Level 下表现行为.</p>
+<p>GameMode 只在 Sever 中存在(单机游戏也是 Server)，因此对于 Client 的状态与逻辑，GameMode 无法控制，需要通过客户端具体关卡的 LevelScriptActor / 关卡蓝图 中的逻辑控制.</p>
+</blockquote>
+<h1 id="LevelScriptActor-关卡蓝图"><a href="#LevelScriptActor-关卡蓝图" class="headerlink" title="LevelScriptActor / 关卡蓝图"></a>LevelScriptActor / 关卡蓝图</h1><blockquote>
+<p>关卡蓝图可包含此关卡下的一些运行规则，提供编写脚本的功能.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>Ue 不希望在 LevelScriptActor / 关卡蓝图 中出现太多逻辑代码.</li>
+<li>LevelScriptActor 派生于 AActor，具备挂载组件的功能，但是不允许你挂载组件.</li>
+</ol>
+</blockquote>
+<h1 id="Controller-“MVC-C”"><a href="#Controller-“MVC-C”" class="headerlink" title="Controller “MVC - C”"></a>Controller “MVC - C”</h1><blockquote>
+<p>控制玩家Pawn的核心逻辑.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>Controller 不能够嵌套控制，即不应存在父子嵌套层级.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Class AController -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">void Possess(APawn* InPawn); &#x2F; 动态选择控制的 Pawn 实例</span><br><span class="line">void UnPossess(); &#x2F; 动态注销控制的 Pawn 实例</span><br><span class="line">void ChangeState(fName NewState); &#x2F; 改变 Controller 状态</span><br><span class="line">void InitPlayerState(); &#x2F; 保存玩家数据</span><br><span class="line">-------------</span><br><span class="line">APlayerState* PlayerState;</span><br><span class="line">uint32 bAttachToPawn;1; &#x2F; 附加到 Pawn</span><br><span class="line">APawn* Pawn;</span><br><span class="line">ACharacter* Character;</span><br><span class="line">USceneComponent* TransformComponent; &#x2F; 支持移动</span><br><span class="line">FRotator ControlRotation; &#x2F; 支持移动</span><br><span class="line">Fname StateName;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Responsibility-职责-1"><a href="#Responsibility-职责-1" class="headerlink" title="Responsibility / 职责"></a>Responsibility / 职责</h2><ul>
+<li><p>关联并控制玩家Pawn</p>
+<blockquote>
+<p><code>注意:</code></p>
+<ol>
+<li>不能一个 Controller 同时控制多个 Pawn，只能运行时动态切换 Controller 与 Pawn 的1:1关联，因此即时策略类的游戏不太适合该框架，其需要同时控制多个玩家.</li>
+</ol>
+</blockquote>
+</li>
+<li><p>自身具备Spawn的能力</p>
+<blockquote>
+<p>由更高的逻辑控制层控制 Controller 的 Spawn.</p>
+</blockquote>
+</li>
+<li><p>控制 Pawn 的 Spawn</p>
+</li>
+<li><p>保存数据状态</p>
+</li>
+<li><p>在世界中具备位置信息</p>
+<blockquote>
+<p>挂载 SceneComponent 组件.</p>
+<p>Controller 具有位置信息的意义在于基于其本身的位置信息，可以更高的控制 Pawn 的位置与移动.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>但是 Controller 自身的位置信息不会自动更新，若需要自动更新，则需要设置 bAttachToPawn 为 true，将 Controller 附加到 Pawn 上，使其跟随 Pawn 的移动.</li>
+</ol>
+</blockquote>
+</li>
+<li><p>同步</p>
+</li>
+</ul>
+<h2 id="APlayerController"><a href="#APlayerController" class="headerlink" title="APlayerController"></a>APlayerController</h2><blockquote>
+<p>作为玩家控制的实体，具有与玩家相关的操作接口.</p>
+<p>主要负责相机管理，输入逻辑控制，关联UPlayer，显示HUD，Voice语音，Level切换等职责.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>APlayerController 可以被替换，一般不同的关卡玩家会关联不同的 APlayerController，来实现不同的控制方式.</li>
+<li>UPlayer : APlayerController : APawn : APlayerState = 1:1:1:1;可切换.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Class APlayerController -&gt; AController -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">void SetPlayer(Uplayer* InPlayer); &#x2F; 设置所控制的玩家</span><br><span class="line">-------------</span><br><span class="line">UPlayer* Player; &#x2F; 关联 Player</span><br><span class="line">AHUD* MyHUD; &#x2F; HUD显示</span><br><span class="line">APlayerCameraManager* PlayerCameraManager; &#x2F; 控制玩家视角</span><br><span class="line">UPlayerInput* PlayerInput; &#x2F; 输入处理</span><br><span class="line">APawn* AcknowledgedPawn;</span><br><span class="line">ASpectatorPawn* SpectatorPawn;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="AAIController"><a href="#AAIController" class="headerlink" title="AAIController"></a>AAIController</h2><blockquote>
+<p>AI 也可以算作一个 Player，只是无需接受玩家的控制，AAIController 为 AI 的控制实体.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Class AAIController -&gt; AController -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">...</span><br><span class="line">剔除了APlayerController的基本组件，但新增了一些AI组件</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+<h1 id="——-数据存储-数据——"><a href="#——-数据存储-数据——" class="headerlink" title="——-数据存储 - 数据——-"></a>——-数据存储 - 数据——-</h1><h1 id="SaveGame-游戏存档"><a href="#SaveGame-游戏存档" class="headerlink" title="SaveGame / 游戏存档"></a>SaveGame / 游戏存档</h1><blockquote>
+<p>玩家存档.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>SaveGame 可以看作是一个全局持久的 数据 + 数据业务逻辑 类.</li>
+<li>GameInstance 存临时数据，而 SaveGame 存持久性数据.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Class USaveGame -&gt; UObject</span><br></pre></td></tr></table></figure>
+
+<h1 id="GameState-World-配置"><a href="#GameState-World-配置" class="headerlink" title="GameState / World 配置"></a>GameState / World 配置</h1><blockquote>
+<p>保存游戏的状态数据，包含整个游戏的状态数据以及所有的 PlayerState.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>GameState 在客户端存在，GameMode 下的状态数据可通过 GameState 传递.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Class AGameState -&gt; AInfo -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">void SetMatchState(...); &#x2F; 同步游戏运行状态</span><br><span class="line">void AddPlayerState(...); &#x2F; 管理 World 下的 PlayerState</span><br><span class="line">-------------</span><br><span class="line">Fname MatchState;</span><br><span class="line">TArray&lt;class APlayerState*&gt; PlayerArray;</span><br></pre></td></tr></table></figure>
+
+<h2 id="GameSession-游戏会话"><a href="#GameSession-游戏会话" class="headerlink" title="GameSession / 游戏会话"></a>GameSession / 游戏会话</h2><blockquote>
+<p>针对网络 Session 的一个方便管理的类.</p>
+</blockquote>
+<h1 id="WorldSettings-关卡配置"><a href="#WorldSettings-关卡配置" class="headerlink" title="WorldSettings / 关卡配置"></a>WorldSettings / 关卡配置</h1><blockquote>
+<p>存放着与关联 Level 相关的设置.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>若 WorldSettings 关联的 Level 为 World 的 PersistentLevel，则该 WorldSettings 将作为整个 World 的 WorldSettings.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Class AWorldSettings -&gt; AInfo -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">TSubclassOf&lt;class AGameMode&gt; DefaultGameMode; &#x2F; 用于生成所处 World 下的 GameMode</span><br><span class="line">-------------</span><br><span class="line">Other settings; &#x2F; 其他关卡下的设置</span><br></pre></td></tr></table></figure>
+
+<h1 id="APlayerState-玩家配置”MVC-M”"><a href="#APlayerState-玩家配置”MVC-M”" class="headerlink" title="APlayerState / 玩家配置”MVC - M”"></a>APlayerState / 玩家配置”MVC - M”</h1><blockquote>
+<p>存放关卡范围内的玩家的游玩数据.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>跨关卡的统计数据(SaveGame)，关卡内 Controller 的临时数据，关卡内的其他数据(GameState)，不应该由 APlayerState 保存.</li>
+<li>APlayerState 只为真实的玩家 Player 存在，NPC可读取对应的 APlayerState 作决策，但自身不存在 APlayerState.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Class APlayerState -&gt; AInfo -&gt; AActor</span><br><span class="line">-------------</span><br><span class="line">float Score;</span><br><span class="line">int32 PlayerId;</span><br><span class="line">-------------</span><br></pre></td></tr></table></figure>
+
+<h1 id="——-玩家接入——"><a href="#——-玩家接入——" class="headerlink" title="——-玩家接入——-"></a>——-玩家接入——-</h1><h1 id="Player-玩家接入点"><a href="#Player-玩家接入点" class="headerlink" title="Player - 玩家接入点"></a>Player - 玩家接入点</h1><blockquote>
+<p>Ue 中 Player 是广泛的概念，本地玩家可以是 Player，联机时的网络连接也可以是 Player.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>Player 是比 World 更高一级的存在.</li>
+<li>Ue 并不推荐直接在 Player 中编程，而是将其作为源头，作为玩家接入 World 的起点，构建 GamePlay 机制.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Class UPlayer -&gt; UObject</span><br><span class="line">-------------</span><br><span class="line">void SwitchController(APlayerController* PC);</span><br><span class="line">-------------</span><br><span class="line">APlayerController* PlayerController;</span><br><span class="line">int32 CurrentNetSpeed;</span><br></pre></td></tr></table></figure>
+
+<h2 id="ULocalPlayer"><a href="#ULocalPlayer" class="headerlink" title="ULocalPlayer"></a>ULocalPlayer</h2><blockquote>
+<p>本地玩家.</p>
+<p>玩家对象的上层就是引擎，GameInstance 中保存着 LocalPlayer 列表.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>LocalPlayer 是 PlayerController 产生的源头.</li>
+<li>GamePlay 框架下不写相关逻辑，拓展后可写玩家的相关逻辑.</li>
+</ol>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Class ULocalPlayer -&gt; UPlayer -&gt; UObject</span><br><span class="line">-------------</span><br><span class="line">UWorld* GetWorld();</span><br><span class="line">bool SpawnPlayActor(...); &#x2F; 生成 PlayerController</span><br><span class="line">UGameInstance* GetGameInstance() const;</span><br><span class="line">-------------</span><br><span class="line">UGameViewportClient* ViewportClient;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="UNetConnection"><a href="#UNetConnection" class="headerlink" title="UNetConnection"></a>UNetConnection</h2><blockquote>
+<p>Ue 中一个网络连接也是一个 Player，可提供输入信号的都可以当做 Player.</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Class UNetConnection -&gt; UPlayer -&gt; UObject</span><br></pre></td></tr></table></figure>
+
+<p>**Questions : **</p>
+<ul>
+<li><del>PlayerState : Player = 1:1 ？</del></li>
+<li><del>整个框架的上下级管理关系需要梳理出来</del></li>
+<li><del>BSP 基元组件 与 网格体组件关系？</del></li>
+<li><del>PersistentLevel 与 CurrentLevel 有什么关系？</del></li>
+<li><del>Level 下会有自己的 GameMode？？</del></li>
+<li><del>对 World 的概念不是很理解</del></li>
+<li><del>OpenLevel 是用于切换 Level ？还是 World ？</del></li>
+<li><del>UGameViewportClient？？？</del></li>
+<li><del>硬编码？</del></li>
+<li>RPC调用？？</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">YunDid</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/">http://example.com/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">YunDid's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/GamePlay/">GamePlay</a></div><div class="post_share"><div class="social-share" data-image="/img/ma3.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/03/22/Animation/CenterAI_%E7%A5%9E%E7%BB%8F%E7%8A%B6%E6%80%81%E6%9C%BA/"><img class="prev-cover" src="/img/ma3.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Siggraph Asia 2019 - 神经状态机</div></div></a></div><div class="next-post pull-right"><a href="/2022/03/22/Unreal/Ue4_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E6%9C%AA%E5%AE%8C/"><img class="next-cover" src="/img/ma3.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Ue4 - Animation System</div></div></a></div></nav><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/1.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">YunDid</div><div class="author-info__description">欢迎来到 YunDid's Blog！有疑问可以到 “留言板” 提问！^_^</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">46</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">19</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">15</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/YunDid"><i class="fab fa-github"></i><span>博主的GitHub首页</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/YunDid" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:512862613@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">萌新一枚~</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Outline-View-%E5%A4%A7%E7%BA%B2%E8%A7%86%E5%9B%BE"><span class="toc-number">1.</span> <span class="toc-text">Outline View &#x2F; 大纲视图</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#MVC-in-Ue-GamePlay"><span class="toc-number">1.1.</span> <span class="toc-text">MVC in Ue_GamePlay</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Necessary-Class-in-Ue-GamePlay"><span class="toc-number">1.2.</span> <span class="toc-text">Necessary Class in Ue_GamePlay</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E2%80%94%E2%80%94-%E4%B8%96%E7%95%8C%E6%9E%84%E5%BB%BA-%E8%A1%A8%E7%8E%B0%E2%80%94%E2%80%94"><span class="toc-number">2.</span> <span class="toc-text">——-世界构建 - 表现——-</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#UObject"><span class="toc-number">3.</span> <span class="toc-text">UObject</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Component-%E7%BB%84%E4%BB%B6"><span class="toc-number">4.</span> <span class="toc-text">Component &#x2F; 组件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#SceneComponent-%E5%9C%BA%E6%99%AF%E7%BB%84%E4%BB%B6"><span class="toc-number">4.1.</span> <span class="toc-text">SceneComponent &#x2F; 场景组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ActorComponent-Actor-%E7%BB%84%E4%BB%B6"><span class="toc-number">4.2.</span> <span class="toc-text">ActorComponent &#x2F; Actor 组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Actor-and-Component-%E5%85%B3%E7%B3%BB"><span class="toc-number">4.3.</span> <span class="toc-text">Actor and Component &#x2F; 关系</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Actor"><span class="toc-number">5.</span> <span class="toc-text">Actor</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Actor-Hierarchy-%E5%B1%82%E7%BA%A7"><span class="toc-number">5.1.</span> <span class="toc-text">Actor Hierarchy &#x2F; 层级</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tranform-%E5%8F%98%E6%8D%A2"><span class="toc-number">5.2.</span> <span class="toc-text">Tranform &#x2F; 变换</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Pawn-%E2%80%9CMVC-V%E2%80%9D"><span class="toc-number">6.</span> <span class="toc-text">Pawn “MVC - V”</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#ADefaultPawn"><span class="toc-number">6.1.</span> <span class="toc-text">ADefaultPawn</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ASpectatorPawn"><span class="toc-number">6.2.</span> <span class="toc-text">ASpectatorPawn</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ACharacter"><span class="toc-number">6.3.</span> <span class="toc-text">ACharacter</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Level-%E5%85%B3%E5%8D%A1"><span class="toc-number">7.</span> <span class="toc-text">Level &#x2F; 关卡</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#World-%E4%B8%96%E7%95%8C"><span class="toc-number">8.</span> <span class="toc-text">World &#x2F; 世界</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#PersistentLevel-%E4%B8%BB%E5%85%B3%E5%8D%A1"><span class="toc-number">8.1.</span> <span class="toc-text">PersistentLevel &#x2F; 主关卡</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#EWorldType-World-%E7%B1%BB%E5%9E%8B"><span class="toc-number">8.2.</span> <span class="toc-text">EWorldType &#x2F; World 类型</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#GameInstance-Game-%E5%A7%8B%E6%9C%AB"><span class="toc-number">9.</span> <span class="toc-text">GameInstance - Game 始末</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Engine"><span class="toc-number">10.</span> <span class="toc-text">Engine</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#UGameEngine"><span class="toc-number">10.1.</span> <span class="toc-text">UGameEngine</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UEditorEngine"><span class="toc-number">10.2.</span> <span class="toc-text">UEditorEngine</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E2%80%94%E2%80%94-%E9%80%BB%E8%BE%91%E6%8E%A7%E5%88%B6-%E9%80%BB%E8%BE%91%E2%80%94%E2%80%94"><span class="toc-number">11.</span> <span class="toc-text">——-逻辑控制 - 逻辑——-</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#WorldContext"><span class="toc-number">12.</span> <span class="toc-text">WorldContext</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Level-Traveling-%E5%85%B3%E5%8D%A1%E5%88%87%E6%8D%A2"><span class="toc-number">12.1.</span> <span class="toc-text">Level Traveling &#x2F; 关卡切换</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#GameMode-%E6%B8%B8%E6%88%8F%E6%A8%A1%E5%BC%8F"><span class="toc-number">13.</span> <span class="toc-text">GameMode &#x2F; 游戏模式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Responsibility-%E8%81%8C%E8%B4%A3"><span class="toc-number">13.1.</span> <span class="toc-text">Responsibility &#x2F; 职责</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Travelling-GameMode-%E6%A8%A1%E5%BC%8F%E5%88%87%E6%8D%A2"><span class="toc-number">13.2.</span> <span class="toc-text">Travelling GameMode &#x2F; 模式切换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GameMode-and-LevelScriptActor"><span class="toc-number">13.3.</span> <span class="toc-text">GameMode and LevelScriptActor</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#LevelScriptActor-%E5%85%B3%E5%8D%A1%E8%93%9D%E5%9B%BE"><span class="toc-number">14.</span> <span class="toc-text">LevelScriptActor &#x2F; 关卡蓝图</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Controller-%E2%80%9CMVC-C%E2%80%9D"><span class="toc-number">15.</span> <span class="toc-text">Controller “MVC - C”</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Responsibility-%E8%81%8C%E8%B4%A3-1"><span class="toc-number">15.1.</span> <span class="toc-text">Responsibility &#x2F; 职责</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#APlayerController"><span class="toc-number">15.2.</span> <span class="toc-text">APlayerController</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AAIController"><span class="toc-number">15.3.</span> <span class="toc-text">AAIController</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E2%80%94%E2%80%94-%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8-%E6%95%B0%E6%8D%AE%E2%80%94%E2%80%94"><span class="toc-number">16.</span> <span class="toc-text">——-数据存储 - 数据——-</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#SaveGame-%E6%B8%B8%E6%88%8F%E5%AD%98%E6%A1%A3"><span class="toc-number">17.</span> <span class="toc-text">SaveGame &#x2F; 游戏存档</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#GameState-World-%E9%85%8D%E7%BD%AE"><span class="toc-number">18.</span> <span class="toc-text">GameState &#x2F; World 配置</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#GameSession-%E6%B8%B8%E6%88%8F%E4%BC%9A%E8%AF%9D"><span class="toc-number">18.1.</span> <span class="toc-text">GameSession &#x2F; 游戏会话</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#WorldSettings-%E5%85%B3%E5%8D%A1%E9%85%8D%E7%BD%AE"><span class="toc-number">19.</span> <span class="toc-text">WorldSettings &#x2F; 关卡配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#APlayerState-%E7%8E%A9%E5%AE%B6%E9%85%8D%E7%BD%AE%E2%80%9DMVC-M%E2%80%9D"><span class="toc-number">20.</span> <span class="toc-text">APlayerState &#x2F; 玩家配置”MVC - M”</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E2%80%94%E2%80%94-%E7%8E%A9%E5%AE%B6%E6%8E%A5%E5%85%A5%E2%80%94%E2%80%94"><span class="toc-number">21.</span> <span class="toc-text">——-玩家接入——-</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Player-%E7%8E%A9%E5%AE%B6%E6%8E%A5%E5%85%A5%E7%82%B9"><span class="toc-number">22.</span> <span class="toc-text">Player - 玩家接入点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#ULocalPlayer"><span class="toc-number">22.1.</span> <span class="toc-text">ULocalPlayer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#UNetConnection"><span class="toc-number">22.2.</span> <span class="toc-text">UNetConnection</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/02/27/Matlab/Matlab/" title="Matlab 入门"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Matlab 入门"/></a><div class="content"><a class="title" href="/2023/02/27/Matlab/Matlab/" title="Matlab 入门">Matlab 入门</a><time datetime="2023-02-27T01:30:00.000Z" title="发表于 2023-02-27 09:30:00">2023-02-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/Animation/CenterAI_%E7%A5%9E%E7%BB%8F%E7%8A%B6%E6%80%81%E6%9C%BA/" title="Siggraph Asia 2019 - 神经状态机"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Siggraph Asia 2019 - 神经状态机"/></a><div class="content"><a class="title" href="/2022/03/22/Animation/CenterAI_%E7%A5%9E%E7%BB%8F%E7%8A%B6%E6%80%81%E6%9C%BA/" title="Siggraph Asia 2019 - 神经状态机">Siggraph Asia 2019 - 神经状态机</a><time datetime="2022-03-22T02:40:00.000Z" title="发表于 2022-03-22 10:40:00">2022-03-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/" title="YumiGame - Ue4 - GamePlay"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="YumiGame - Ue4 - GamePlay"/></a><div class="content"><a class="title" href="/2022/03/22/Unreal/Ue4_GamePlay%E6%A1%86%E6%9E%B6%E8%AF%A6%E8%A7%A3/" title="YumiGame - Ue4 - GamePlay">YumiGame - Ue4 - GamePlay</a><time datetime="2022-03-22T02:30:00.000Z" title="发表于 2022-03-22 10:30:00">2022-03-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/Unreal/Ue4_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E6%9C%AA%E5%AE%8C/" title="Ue4 - Animation System"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Ue4 - Animation System"/></a><div class="content"><a class="title" href="/2022/03/22/Unreal/Ue4_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F%E6%9C%AA%E5%AE%8C/" title="Ue4 - Animation System">Ue4 - Animation System</a><time datetime="2022-03-22T02:28:00.000Z" title="发表于 2022-03-22 10:28:00">2022-03-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/03/22/Unity/Unity_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F/" title="Unity - Animation Systems"><img src="/img/ma3.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Unity - Animation Systems"/></a><div class="content"><a class="title" href="/2022/03/22/Unity/Unity_%E5%8A%A8%E7%94%BB%E7%B3%BB%E7%BB%9F/" title="Unity - Animation Systems">Unity - Animation Systems</a><time datetime="2022-03-22T02:27:00.000Z" title="发表于 2022-03-22 10:27:00">2022-03-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By YunDid</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text"><i class="fab fa-qq"></i> 512862613 | <i class="fab fa-weixin"></i> Mmm-myy1</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">簡</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="chat_btn" type="button" title="rightside.chat_btn"><i class="fas fa-sms"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="/js/search/local-search.js"></script><script>var preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',preloader.endLoading())</script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: 'RUIbtPgCc0o0TGaeqMWlX9P5-gzGzoHsz',
+      appKey: 'PaoiG1dlQjiDQAVRBexH6KkR',
+      placeholder: 'Please leave your footprints',
+      avatar: 'monsterid',
+      meta: 'nick,mail,link'.split(','),
+      pageSize: '10',
+      lang: 'en',
+      recordIP: false,
+      serverURLs: '',
+      emojiCDN: '',
+      emojiMaps: "",
+      enableQQ: false,
+      path: window.location.pathname,
+      requiredFields: ["nick,mail"],
+      visitor: false
+    }, null))
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Valine' === 'Valine' || !false) {
+  if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="false" data-click="true"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><script src="https://cdn.jsdelivr.net/npm/live2d-widget@^3.1.3/lib/L2Dwidget.min.js"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"scale":1,"hHeadPos":0.5,"vHeadPos":0.618,"jsonPath":"/live2dw/assets/koharu.model.json"},"display":{"superSample":2,"position":"left","width":150,"height":300,"hOffset":20,"vOffset":-90},"mobile":{"show":true,"scale":1},"react":{"opacityDefault":0.3,"opacityOnHover":0.3,"opacity":0.95},"log":false});</script></body></html>
