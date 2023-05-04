@@ -13862,4 +13862,458 @@ bool try_lock_for(const chrono::duration&lt;Rep,Period&gt;&amp; time);
         <tag>Matlab</tag>
       </tags>
   </entry>
+  <entry>
+    <title>机器学习 - 入门</title>
+    <url>/2023/04/10/Maching_learning/Maching%20learning/</url>
+    <content><![CDATA[<h1 id="Machine-learning-机器学习"><a href="#Machine-learning-机器学习" class="headerlink" title="Machine learning / 机器学习"></a>Machine learning / 机器学习</h1><h1 id="Definition-定义"><a href="#Definition-定义" class="headerlink" title="Definition / 定义"></a>Definition / 定义</h1><blockquote>
+<p><code>Tom Mitchell (1998) Well-posed Learning Problem: </code></p>
+<p><code>A computer program is said to learn from experience E with respect to some task T and some performance measure P, if its performance on T, as measured by P, improves with experience E.</code></p>
+<p>将其定义为一种计算机程序，该程序可以基于训练学习的经验 E，解决任务 T.</p>
+<p>并且使用 P 来衡量性能，P 将随着 E 的增加而提升.</p>
+</blockquote>
+<h1 id="Cost-function-损失函数"><a href="#Cost-function-损失函数" class="headerlink" title="Cost function / 损失函数"></a>Cost function / 损失函数</h1><blockquote>
+<p>损失函数是用来衡量机器学习算法在训练过程中的预测结果与真实值之间误差的函数，用于优化算法的参数，以得到更好的预测效果.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>处理的任务类型不同，使用的损失函数也不同，回归问题常用平方误差损失函数.</li>
+<li>损失函数的自变量以模型中的参数为准.</li>
+<li>算法通过迭代更新参数的值，来计算损失函数的值并使其收敛(达到全局最小)，进而优化模型.</li>
+</ol>
+</blockquote>
+<h2 id="Regularization-正则化"><a href="#Regularization-正则化" class="headerlink" title="Regularization / 正则化"></a>Regularization / 正则化</h2><blockquote>
+<p>正则化用于防止过拟合现象的发生，正则化通过在模型损失函数中添加一个正则化项，来约束参数大小从而约束模型的复杂度.</p>
+<p>正则化项用于平衡两个目标，一个是保证模型较好的拟合效果，一个是防止过拟合现象的发生，保证一定的泛化效果.</p>
+</blockquote>
+<ul>
+<li>In Linear regression / 线性回归</li>
+</ul>
+<blockquote>
+<p>数学表现形式为参数向负梯度方向更新时，多了一项 0-1 之间系数，来约束参数的大小.</p>
+</blockquote>
+<ul>
+<li>In Logistic regression / 逻辑回归</li>
+</ul>
+<blockquote>
+<p>数学表现形式为参数向负梯度方向更新时，多了一项 0-1 之间系数，来约束参数的大小.</p>
+</blockquote>
+<p><img src="/.com//Users\Yundid\AppData\Roaming\Typora\typora-user-images\image-20230421162133584.png" alt="image-20230421162133584"></p>
+<h1 id="Gradient-descent-梯度下降算法"><a href="#Gradient-descent-梯度下降算法" class="headerlink" title="Gradient descent / 梯度下降算法"></a>Gradient descent / 梯度下降算法</h1><blockquote>
+<p>梯度下降算法是用来求解目标函数全局最小值的优化算法，机器学习领域其可以通过优化模型参数使得损失函数达到最小值.</p>
+</blockquote>
+<h2 id="Feature-Scaling-特征缩放"><a href="#Feature-Scaling-特征缩放" class="headerlink" title="Feature Scaling / 特征缩放"></a>Feature Scaling / 特征缩放</h2><blockquote>
+<p>特征缩放是一种常用的预处理技术，它通过将不同特征的取值范围进行缩放，使得他们在数值范围上具有相似的规模，来防止某些特征在模型训练中占据主导地位，导致其他特征被忽略，使得每个特征对于模型的影响能够平等的体现，从而提高模型的训练精度与速度.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>缩放后的数据可能使一些异常值更加明显，需要提前处理.</li>
+</ol>
+</blockquote>
+<ul>
+<li><p>Standardization / 标准化</p>
+<blockquote>
+<p>将数值缩放至均值为0，标准差为1的范围内，公式如下,<br>$$<br>z_i = \frac{z_i-u_i}{α_i}<br>$$<br>u 表示特征均值，α 表示特征标准差.</p>
+</blockquote>
+</li>
+<li><p>Normalization / 归一化</p>
+</li>
+</ul>
+<h2 id="Batch-Gradient-Descent-批量梯度下降算法"><a href="#Batch-Gradient-Descent-批量梯度下降算法" class="headerlink" title="Batch Gradient Descent 批量梯度下降算法"></a>Batch Gradient Descent 批量梯度下降算法</h2><blockquote>
+<ul>
+<li><p>基本思路为以所有训练样本为基准，沿着损失函数负梯度的方向迭代更新参数，直到损失函数收敛到最小值或者达到预设的停止条件.</p>
+</li>
+<li><p>每一次迭代时，会计算损失函数对于当前参数的偏导数，然后将该参数按学习率移动一定的步长，来更新参数的值，公式如下.<br>$$<br>w_i = w_i - α\frac{∂J(w)}{αw_i}<br>$$<br>α 表示学习率，wi 为参数，J(w) 为损失函数.</p>
+</li>
+</ul>
+<p><code>注意:</code></p>
+<ol>
+<li>迭代的同时，参数移动时的|梯度|将随着与最小值的距离的缩短而变小，因此越靠近最小值，参数移动的速度将自动变慢.</li>
+<li>多参需要同步迭代更新，即需要注意同时写入，避免使用更新后的参数值参与其他参数的迭代更新.</li>
+<li>学习率过大将导致无法收敛，于最小值附近抖动，学习率过小将导致收敛速度过慢.</li>
+<li>批量梯度下降算法每一次迭代都使用了所有的训练样本.</li>
+<li>梯度越大，则代表当前权重对于损失函数的影响越大.</li>
+</ol>
+</blockquote>
+<h2 id="Stochastic-Gradient-Descent-随机梯度下降算法"><a href="#Stochastic-Gradient-Descent-随机梯度下降算法" class="headerlink" title="Stochastic Gradient Descent / 随机梯度下降算法"></a>Stochastic Gradient Descent / 随机梯度下降算法</h2><blockquote>
+<p>SGD 随机梯度下降与 BGD 批量梯度下降算法的区别在于，SGD 每次迭代仅使用一个随机样本而不是全部样本进行梯度计算进而完成参数更新，因此它的计算速度更快，在处理大规模数据集时更有优势.</p>
+</blockquote>
+<ul>
+<li><p>Online learning / 在线学习</p>
+<blockquote>
+<p>在线学习算法通过不断处理新数据并即时更新模型来进行学习.</p>
+<p>其过程是在不断地流式数据中进行的，不断接受新的数据样本，并用于参数更新.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>在线学习想较于离线学习的一个显著特点是它可以快速适应新数据来提高模型精度.</li>
+</ol>
+</blockquote>
+</li>
+</ul>
+<h2 id="Mini-batch-SGD-批量随机梯度下降算法"><a href="#Mini-batch-SGD-批量随机梯度下降算法" class="headerlink" title="Mini-batch SGD / 批量随机梯度下降算法"></a>Mini-batch SGD / 批量随机梯度下降算法</h2><blockquote>
+<p>其是 SGD 与 BGD 算法的折中，每次迭代使用抽样的小批量数据集进行梯度计算以完成参数更新，是训练速度以及泛化能力的折中.</p>
+</blockquote>
+<h1 id="Model-fit-模型拟合"><a href="#Model-fit-模型拟合" class="headerlink" title="Model fit / 模型拟合"></a>Model fit / 模型拟合</h1><h2 id="Data-split-数据集划分"><a href="#Data-split-数据集划分" class="headerlink" title="Data split / 数据集划分"></a>Data split / 数据集划分</h2><ul>
+<li><p>训练集</p>
+<blockquote>
+<p>用来训练模型参数的数据集，基于训练集数据的数据特征来调整模型参数.</p>
+</blockquote>
+</li>
+<li><p>验证集</p>
+<blockquote>
+<p>验证集用来评估训练过程中模型的表现并选择最优的模型参数，不再进行训练，直接使用训练集的参数进行模型效果对比，进而选择最优模型.</p>
+</blockquote>
+</li>
+<li><p>测试集</p>
+<blockquote>
+<p>用于评估模型性能以及泛化能力，与训练集与验证集独立.</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Underfitting-欠拟合"><a href="#Underfitting-欠拟合" class="headerlink" title="Underfitting / 欠拟合"></a>Underfitting / 欠拟合</h2><blockquote>
+<p>欠拟合是指模型在训练集上表现不佳的现象，即模型无法很好的拟合数据的模式与规律.D</p>
+</blockquote>
+<p><code>原因:</code></p>
+<ol>
+<li>模型过于简单</li>
+</ol>
+<p><code>解决方案：</code></p>
+<ol>
+<li>增加模型复杂度，增加阶数来拟合数据.</li>
+<li>减小正则化系数.</li>
+<li>增加训练数据.</li>
+</ol>
+<h2 id="Overfitting-过拟合"><a href="#Overfitting-过拟合" class="headerlink" title="Overfitting / 过拟合"></a>Overfitting / 过拟合</h2><blockquote>
+<p>过拟合是指模型在训练样本上的表现良好，而在测试数据上表现不佳的现象.</p>
+</blockquote>
+<p><code>原因:</code></p>
+<ol>
+<li>如多项式回归问题中的阶数过高，模型复杂度过高(特征过多)会导致过拟合现象的发生.</li>
+<li>数据量不足，数据采样不均衡.</li>
+</ol>
+<p><code>解决方案：</code></p>
+<ol>
+<li>增加数据集规模，使得模型学习的更全面.</li>
+<li>降低模型复杂度，例如正则化.</li>
+</ol>
+<h2 id="Learning-curve-学习曲线"><a href="#Learning-curve-学习曲线" class="headerlink" title="Learning curve / 学习曲线"></a>Learning curve / 学习曲线</h2><blockquote>
+<p>用来评估机器学习算法性能的图形化工具，通过绘制训练集与验证集误差或者准确率随着样本数量增加而变化的曲线，用来评估模型的泛化能力以及是否存在过拟合或者欠拟合现象.</p>
+<p>若训练集误差与验证集误差都很高，则存在欠拟合现象.</p>
+<p>若训练集误差很低而验证集误差很高，则存在过拟合现象.</p>
+</blockquote>
+<h2 id="Relationship-正则化与偏差方差的关系"><a href="#Relationship-正则化与偏差方差的关系" class="headerlink" title="Relationship / 正则化与偏差方差的关系"></a>Relationship / 正则化与偏差方差的关系</h2><blockquote>
+<p>正则化系数过大，模型参数影响效果过小，模型存在欠拟合现象，无论是训练集还是验证集的误差均很高.</p>
+<p>正则化系数过低，模型参数影响效果过大，模型过于复杂，存在过拟合现象，训练集误差很低，验证集误差很高.</p>
+</blockquote>
+<p><img src="/.com//Users\Yundid\AppData\Roaming\Typora\typora-user-images\image-20230430172426786.png" alt="image-20230430172426786"></p>
+<h1 id="Error-analysis-误差分析"><a href="#Error-analysis-误差分析" class="headerlink" title="Error analysis / 误差分析"></a>Error analysis / 误差分析</h1><h2 id="Accuracy-准确率"><a href="#Accuracy-准确率" class="headerlink" title="Accuracy / 准确率"></a>Accuracy / 准确率</h2><blockquote>
+<p>准确率是一个常用的分类模型性能指标，用来表示正确分类的样本数与总样本数之比.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>若样本中正类与负类的分布极其不均衡，准确率可能会失真.</li>
+</ol>
+</blockquote>
+<p>$$<br>accuracy = \frac{TP+TN}{TP+TN+FP+FN}<br>$$</p>
+<h2 id="Precision-查准率"><a href="#Precision-查准率" class="headerlink" title="Precision / 查准率"></a>Precision / 查准率</h2><blockquote>
+<p>在所有预测为正类的样本中，真正为正类的样本所占的比例.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>查准率表示的为作出正类预测后的准确度，伴随更高的分类阈值，与召回率呈负相关关系.</li>
+</ol>
+</blockquote>
+<p>$$<br>precision = \frac{TP}{TP+TN}<br>$$</p>
+<h2 id="Recall-召回率"><a href="#Recall-召回率" class="headerlink" title="Recall / 召回率"></a>Recall / 召回率</h2><blockquote>
+<p>在所有真正为正类的样本中，预测为正类的样本所占的比例.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>召回率表示的是作出正类预测的难易程度，伴随更低的分类阈值，与查准率呈负相关关系.W</li>
+</ol>
+</blockquote>
+<p>$$<br>precision = \frac{TP}{TP+FN}<br>$$</p>
+<h2 id="Balance-权衡"><a href="#Balance-权衡" class="headerlink" title="Balance / 权衡"></a>Balance / 权衡</h2><blockquote>
+<p>基于查准率与召回率可以更全面的评估分类器的性能，但是两者之间负相关的关系需要作出权衡，例如可以基于如下公式选择F较高的模型参数.</p>
+</blockquote>
+<p>$$<br>F = 2\frac{PR}{P+R}<br>$$</p>
+<p>当 Precision 与 Recall 均趋于1时，F 也将趋于1.</p>
+<h1 id="Anomaly-Detection-异常检测"><a href="#Anomaly-Detection-异常检测" class="headerlink" title="Anomaly Detection / 异常检测"></a>Anomaly Detection / 异常检测</h1><blockquote>
+<p>异常检测算法是一种机器学习技术，用于识别数据中的异常点.</p>
+<p>通过建立一个模型来描述正常数据的特征以及分布规律，并基于该模型进行异常点的检测.</p>
+</blockquote>
+<h2 id="Gaussian-distribution-高斯分布"><a href="#Gaussian-distribution-高斯分布" class="headerlink" title="Gaussian distribution / 高斯分布"></a>Gaussian distribution / 高斯分布</h2><blockquote>
+<p>高斯分布，又称为正态分布，用来描述一维空间中变量分布的概率分布，其概率密度函数是一个钟形曲线，曲线中心对应分布的均值，曲线的宽度对应分布的标准差，其两个参数分别为均值与方差.</p>
+</blockquote>
+<h2 id="Multivariate-gaussian-distribution-多元高斯分布"><a href="#Multivariate-gaussian-distribution-多元高斯分布" class="headerlink" title="Multivariate gaussian distribution / 多元高斯分布"></a>Multivariate gaussian distribution / 多元高斯分布</h2><blockquote>
+<p>在多维空间中描述变量分布的概率分布，可以看做是多个高斯分布在不同维度上的联合分布，可以考虑到变量与变量之间的相关性，其概率密度函数为一个山峰曲面，中心代表均值，山峰形状由样本在各个维度上的方法与协方差决定，其两个参数分别为 μ ，即样本在各个维度上的均值，Σ，即协方差矩阵.</p>
+</blockquote>
+<p><img src="/images/Maching_learning/image-20230502180949441.png"></p>
+<h2 id="Gaussian-Mixture-Model-GMM-高斯混合模型"><a href="#Gaussian-Mixture-Model-GMM-高斯混合模型" class="headerlink" title="Gaussian Mixture Model / GMM 高斯混合模型"></a>Gaussian Mixture Model / GMM 高斯混合模型</h2><ul>
+<li>基于高斯分布的异常检测算法.</li>
+</ul>
+<blockquote>
+<p>核心思想是假设样本数据由如若干个单高斯分布组成，即每个特征的分布都是独立的.</p>
+<p>通过计算每个特征的均值与方差，得到每个特征的概率密度分布函数，进而计算样本数据点的概率密度，即各个特征的概率密度的乘积，若该值低于某个阈值，则认为其异常.</p>
+<p>也就说异常点的概率密度分布，在所有特征分布下都很低.</p>
+<p><code>优势:</code></p>
+<ol>
+<li>适用于对于特征数量较多的情况，其计算速度更快.</li>
+<li>对于训练样本数没有要求.</li>
+</ol>
+<p><code>注意:</code></p>
+<ol>
+<li>可对特征值进行变换，使其满足高斯分布.</li>
+</ol>
+</blockquote>
+<ul>
+<li><p>基于多元高斯分布的异常检测算法.</p>
+<blockquote>
+<p>通过计算参数 μ 与 Σ，计算每个样本数据点的概率密度，若其低于某个阈值，则认为其异常.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>可以考虑到特征与特征之间的关联.</li>
+<li>但是要求训练样本数 m 必须大于 特征数 n.</li>
+<li>若协方差矩阵除对角线外均为0，则两种方法等效.</li>
+</ol>
+</blockquote>
+</li>
+</ul>
+<h1 id="Supervised-learning-监督学习"><a href="#Supervised-learning-监督学习" class="headerlink" title="Supervised learning / 监督学习"></a>Supervised learning / 监督学习</h1><blockquote>
+<p><code>In every example in our dataset,we are told what is the &quot;correct answer&quot; that we would have quite liked the algorithm have predicted on the example.</code></p>
+<p>监督学习的数据集中包含了正确预测的标签.</p>
+</blockquote>
+<ul>
+<li><p>Regression problem / 回归问题</p>
+<blockquote>
+<p>预测连续值的输出.</p>
+</blockquote>
+</li>
+<li><p>Classification problem / 分类问题</p>
+<blockquote>
+<p>预测离散值的输出.</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Linear-regression-线性回归"><a href="#Linear-regression-线性回归" class="headerlink" title="Linear regression / 线性回归"></a>Linear regression / 线性回归</h2><blockquote>
+<p>线性回归用于建立输入变量与输出变量之间的线性关系模型，目标是找寻最佳的<strong>拟合直线或超平面</strong>，使得预测值与真实值之间的误差最小.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>线性回归模型的线性体现在是特征的线性组合，模型的参数只涉及输入特征的一次幂以及常数项.</li>
+<li>若含输入特征的高次幂多项式，则称为广义线性回归，即多项式回归模型.</li>
+</ol>
+</blockquote>
+<h3 id="Normal-Equation-正规方程"><a href="#Normal-Equation-正规方程" class="headerlink" title="Normal Equation / 正规方程"></a>Normal Equation / 正规方程</h3><blockquote>
+<p>正规方程是用于求解线性回归模型参数的方法，基于最小二乘法，直接求得模型参数，而不需要进行迭代计算，公式如下，<br>$$<br>θ=(X^TX)^{-1} X^Ty<br>$$<br>θ 代表参数向量，包含所有参数，X 为所有特征的矩阵，y 为真实值向量.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>当数据集规模以及特征数量多的情况下，会因为逆矩阵的操作而非常耗时.</li>
+</ol>
+</blockquote>
+<h2 id="Logistic-regression-逻辑回归算法"><a href="#Logistic-regression-逻辑回归算法" class="headerlink" title="Logistic regression / 逻辑回归算法"></a>Logistic regression / 逻辑回归算法</h2><blockquote>
+<p>Logistic 回归算法，是一种用于分类的统计学习算法，它通过 <strong>sigmoid 函数</strong>将输入特征映射到 0-1 之间的概率值，用于表示样本属于正类的概率.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>广泛用于二元分类问题.</li>
+<li>若仍使用 sigmoid 函数去解决多分类问题，可以基于 OvA 一对多的策略去实现，即修改样本标签，并构建多个分类器针对某种类别.</li>
+</ol>
+</blockquote>
+<h3 id="Decision-Boundary-决策边界"><a href="#Decision-Boundary-决策边界" class="headerlink" title="Decision Boundary / 决策边界"></a>Decision Boundary / 决策边界</h3><blockquote>
+<p>Logistic 回归的目标为学习一个最优的决策边界，使其能够区分不同类别的样本.</p>
+<p>具体而言，使用<strong>最大似然估计</strong>来学习参数，使得在给定数据集的条件下，模型的预测结果与实际结果的差异最小化.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>决策边界是与数据集无关的属性，取决于参数以及假设函数(模型).</li>
+</ol>
+</blockquote>
+<h2 id="Support-vector-machine-SVM-支持向量机算法"><a href="#Support-vector-machine-SVM-支持向量机算法" class="headerlink" title="Support vector machine / SVM 支持向量机算法"></a>Support vector machine / SVM 支持向量机算法</h2><blockquote>
+<p>SVM 分类算法是一种常见的二分类模型，它的目标是在特征空间中找到一个超平面来区分不同的类别.</p>
+<p>SVM 分类算法核心思想是最大化间隔，即将不同类别的数据点分开最大的间隔.</p>
+</blockquote>
+<h3 id="Kernel-核函数"><a href="#Kernel-核函数" class="headerlink" title="Kernel / 核函数"></a>Kernel / 核函数</h3><blockquote>
+<p>核函数是一种用于非线性分类问题的技巧，它可以将低维空间数据映射到高    维空间，使得原本线性不可分的数据变得线性可分.</p>
+<p>基于核函数，SVM 可以用于解决分线性分类问题.</p>
+</blockquote>
+<ul>
+<li><p>线性核函数</p>
+</li>
+<li><p>高斯非线性核函数</p>
+<blockquote>
+<p>参数 σ 为高斯核函数的带宽参数，控制着映射后数据在特征空间中的分布.</p>
+<p>xi 为选定的特征样本.</p>
+<p>$$<br>f_i=exp(-\frac{∥x−x_i∥^2}{−2σ^2})<br>$$</p>
+</blockquote>
+<p><img src="/images/Maching_learning/image-20230501172701792.png"></p>
+</li>
+</ul>
+<h3 id="Cost-function-损失函数-1"><a href="#Cost-function-损失函数-1" class="headerlink" title="Cost function / 损失函数"></a>Cost function / 损失函数</h3><blockquote>
+<p>使用 Hinge 作为 SVM 算法的损失函数.</p>
+<p>SVM 中的正则化项 C 用于控制模型的复杂度.</p>
+<p>f 为核函数映射后的新特征，代表了样本与特征样本的相似程度，即距离.</p>
+</blockquote>
+<p><img src="/images/Maching_learning/image-20230501175830750.png"></p>
+<p><img src="/images/Maching_learning/image-20230501172610822.png" alt="image-20230501172610822"></p>
+<ul>
+<li><p>最大化间隔的数学原理</p>
+<blockquote>
+<p>对于最简化的 SVM 分类器，θ0 = 0，决策边界过原点.</p>
+<p>非最大间隔的决策边界，数据样本到 θ 向量的映射 p 非最大，导致 ||θ|| 无法趋于最小.</p>
+<p>而 SVM 损失函数的优化目标为最小化 θ，此时对应的决策边界距离不同类别样本的距离为最大.</p>
+</blockquote>
+<p><img src="/images/Maching_learning/image-20230501174109035.png" alt="image-20230501174109035"></p>
+</li>
+</ul>
+<h3 id="Balance-优劣"><a href="#Balance-优劣" class="headerlink" title="Balance / 优劣"></a>Balance / 优劣</h3><blockquote>
+<p>SVM 分类算法对于线性可分的数据，基于线性核函数，可以得到唯一的最优解，最大间隔的决策边界.</p>
+<p>对于非线性可分的数据，也能基于非线性核函数，将其转换为线性可分问题解决.</p>
+<p>但是 SVM 分类算法复杂度较高，对于超参数的选择也较敏感.</p>
+</blockquote>
+<h2 id="Neural-network-model-神经网络模型"><a href="#Neural-network-model-神经网络模型" class="headerlink" title="Neural network model / 神经网络模型"></a>Neural network model / 神经网络模型</h2><blockquote>
+<p>神经网络由多层神经元组成，每一层包含多个神经元，可细分为输入层，隐藏层，输出层.</p>
+<p>相邻层之间的神经元相互连接，并且每个连接有一个权重参数.</p>
+<p>神经元的输入为与之相连的前一层所有神经元的线性组合，组合系数为权重参数.</p>
+<p>神经元的输出即该神经元的激活值为添加偏置后，通过激活函数进行非线性转换的值.</p>
+<p>训练过程中，先随机初始化模型权重参数，后基于反向传播算法计算误差梯度，通过梯度下降等优化算法更新迭代参数，使得网络收敛，用于预测或分类.</p>
+</blockquote>
+<h3 id="Back-propagation-反向传播算法"><a href="#Back-propagation-反向传播算法" class="headerlink" title="Back propagation / 反向传播算法"></a>Back propagation / 反向传播算法</h3><blockquote>
+<p>反向传播算法是一种用于训练神经网络的算法，基于梯度下降的思想，通过计算误差梯度，从后向前逐层调整神经网络的权重参数，直至网络收敛或达到最大迭代次数.</p>
+<p>简单理解，反向传播算法用于计算网络权重参数的梯度，从而直接作用于参数更新.</p>
+</blockquote>
+<h4 id="Algorithmic-flow-算法流程"><a href="#Algorithmic-flow-算法流程" class="headerlink" title="Algorithmic flow / 算法流程"></a>Algorithmic flow / 算法流程</h4><ol>
+<li>前向传播</li>
+</ol>
+<blockquote>
+<p>对于输入样本，从输入层开始，逐层计算神经网络中每个节点的输出结果，直至计算出网络的最输出结果.</p>
+</blockquote>
+<ol start="2">
+<li><p>计算误差</p>
+<blockquote>
+<p>将网络的输出结果与目标输出进行对比，计算网络误差.</p>
+</blockquote>
+</li>
+<li><p>反向传播</p>
+<blockquote>
+<p>基于第二步计算的网络误差，从输出层开始，计算每个节点的误差梯度，逐层向前传播，直至计算出每个权重参数的误差梯度.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>上一节点的误差梯度等于下一层所有节点误差梯度的线性组合，组合系数为连接的对应权重参数.</li>
+</ol>
+</blockquote>
+</li>
+<li><p>更新权重</p>
+<blockquote>
+<p>基于节点的误差梯度以及学习率等参数，逐层更新网络中的权重参数.</p>
+</blockquote>
+</li>
+<li><p>迭代更新</p>
+<blockquote>
+<p>重复直至网络收敛或达到最大迭代次数.</p>
+</blockquote>
+</li>
+</ol>
+<h4 id="Visually-understand-形象理解"><a href="#Visually-understand-形象理解" class="headerlink" title="Visually understand / 形象理解"></a>Visually understand / 形象理解</h4><blockquote>
+<p>理解反向传播的关键在于理解一个训练样本将如何调整所有的权重参数.</p>
+<p>输入一个样本后，基于上一批样本的预测值，从输出层开始计算误差.</p>
+<p>基于前一层的激活值以及权重参数来调整减小误差，若为分类问题，则表示增加正类标签的预测概率，降低其他标签的预测概率，输出层每一个神经元都将对应一组期望的变化向量，其中包含上一层所有神经元的所有权重参数的期望变化.</p>
+<p>以此向前传播，计算网络所有参数的期望变化.</p>
+<p>将多批训练样本的参数变化向量取均值，作为参数的微调值，即梯度向量.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>梯度向量的值几何意义表示损失函数对于当前参数的敏感程度.</li>
+<li>梯度向量中的分量通过链式求导法则求得.</li>
+</ol>
+</blockquote>
+<h2 id="Recommended-algorithm-推荐算法"><a href="#Recommended-algorithm-推荐算法" class="headerlink" title="Recommended algorithm / 推荐算法"></a>Recommended algorithm / 推荐算法</h2><blockquote>
+<p>推荐算法目的为通过分析用户的历史行为与偏好，预测用户对于目标的喜好程度，进而向用户推荐感兴趣的目标.</p>
+<p>可以将推荐问题转换为回归或分类问题，通过预测用于对待推荐物品的评分或喜好来推荐.</p>
+</blockquote>
+<h3 id="Content-based-基于内容的推荐算法"><a href="#Content-based-基于内容的推荐算法" class="headerlink" title="Content-based  / 基于内容的推荐算法"></a>Content-based  / 基于内容的推荐算法</h3><blockquote>
+<p>不需要依赖用户之间的关系，而仅需要利用待推荐物品的特征信息，进行推荐的推荐算法.</p>
+<p>需要事先提取出物品的特征信息，算法的准确率也依赖于特征提取的丰富程度.</p>
+</blockquote>
+<h3 id="Collaborative-filtering-协同过滤算法"><a href="#Collaborative-filtering-协同过滤算法" class="headerlink" title="Collaborative filtering / 协同过滤算法"></a>Collaborative filtering / 协同过滤算法</h3><blockquote>
+<p>协同过滤算法又称为低秩矩阵分解算法，是基于用户行为数据的推荐算法，发现用户之间喜好的关联性，预测用户的喜好程度，进而实现推荐.</p>
+<p>θ -&gt; x -&gt; θ -&gt; x …</p>
+</blockquote>
+<h2 id="Optical-Character-Recognition-OCR-光学字符识别算法"><a href="#Optical-Character-Recognition-OCR-光学字符识别算法" class="headerlink" title="Optical Character Recognition / OCR 光学字符识别算法"></a>Optical Character Recognition / OCR 光学字符识别算法</h2><blockquote>
+<p>OCR 算法的主要目标是从图像中提取文本信息，并转换为计算机可读的格式.</p>
+</blockquote>
+<ul>
+<li><p>Region dection / 区域检测</p>
+<blockquote>
+<p>基于滑动窗口分类器进行文本区域的检测.</p>
+</blockquote>
+</li>
+<li><p>字符分割</p>
+<blockquote>
+<p>将文本图像的字符分割为单字符.</p>
+</blockquote>
+</li>
+<li><p>字符识别</p>
+<blockquote>
+<p>基于分类算法对单字符进行分类识别.</p>
+</blockquote>
+</li>
+</ul>
+<h1 id="Unsupervised-learning-无监督学习"><a href="#Unsupervised-learning-无监督学习" class="headerlink" title="Unsupervised learning / 无监督学习"></a>Unsupervised learning / 无监督学习</h1><blockquote>
+<p>数据集没有确定的标签，即确定的结果.</p>
+<p>无监督学习需要根据样本之间的相似性进行<strong>聚类</strong>，使得类内差异最小，类间差异最大.</p>
+</blockquote>
+<h2 id="K-means-聚类算法"><a href="#K-means-聚类算法" class="headerlink" title="K-means / 聚类算法"></a>K-means / 聚类算法</h2><blockquote>
+<p>K-means 是一种常用的聚类算法，通过将一组数据分为 K 个簇而达到聚类的目的.</p>
+</blockquote>
+<h3 id="Algorithm-principle-算法原理"><a href="#Algorithm-principle-算法原理" class="headerlink" title="Algorithm principle / 算法原理"></a>Algorithm principle / 算法原理</h3><blockquote>
+<p>K-means 是一种迭代算法，不断迭代更新每个聚类中心的位置来优化聚类效果，直到满足条件为止.</p>
+</blockquote>
+<ul>
+<li><p>随机初始化</p>
+<blockquote>
+<p>K 簇数应该小于样本数，K 的选择将影响 K-means 算法的准确度，不同的 K 值将导致损失函数趋于不同的局部最优解.</p>
+<p>因此可进行多次随机初始化，根据损失选择最优的 K 值.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>有时可以基于肘部法则来选择 K 值，但一般需要根据实际情况选择.</li>
+</ol>
+</blockquote>
+</li>
+<li><p>为每个样本分配簇</p>
+<blockquote>
+<p>计算每个样本与当前所有簇中心的距离，将样本分配于与其距离最近的簇.</p>
+</blockquote>
+</li>
+<li><p>更新簇中心位置</p>
+<blockquote>
+<p>计算当前所有簇的样本均值，更新簇中心的位置，继续迭代步骤2.</p>
+</blockquote>
+</li>
+<li><p>直至聚类中心不再发生变化或达到迭代次数或阈值为止.</p>
+</li>
+</ul>
+<h3 id="Cost-Function-损失函数"><a href="#Cost-Function-损失函数" class="headerlink" title="Cost Function / 损失函数"></a>Cost Function / 损失函数</h3><blockquote>
+<p>K-means 算法的目标为最小化每个样本与其所属簇中心距离的平方和，即误差平方和.</p>
+<p>算法迭代的过程，即是优化的过程.</p>
+</blockquote>
+<h2 id="Principal-Component-Analysis-PCA-主成分分析算法"><a href="#Principal-Component-Analysis-PCA-主成分分析算法" class="headerlink" title="Principal Component Analysis / PCA 主成分分析算法"></a>Principal Component Analysis / PCA 主成分分析算法</h2><blockquote>
+<p>PCA 是一种常用的降维算法，通过线性变换的方式，将高维数据映射(投影)到低维空间，常用于压缩已经加速模型训练.</p>
+<p>映射是通过找到一组新的坐标系即主成分来实现的，这个坐标系可以最大限度的保留原始数据的方差，从而保留数据的大部分信息.</p>
+<p><code>注意:</code></p>
+<ol>
+<li>不要使用 PCA 用于防止过拟合现象，因为其会丢失数据的一部分信息.</li>
+</ol>
+</blockquote>
+<ul>
+<li><p>对原始数据进行数据预处理.</p>
+<blockquote>
+<p>归一化以及特征缩放.</p>
+</blockquote>
+</li>
+<li><p>计算预处理后的数据的协方差矩阵.</p>
+</li>
+<li><p>对协方差矩阵进行特征值分解.</p>
+</li>
+<li><p>保留前 K 个特征向量即坐标轴，并将原始数据映射到 K 个特征向量张成的子空间内.</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Machine learning</category>
+      </categories>
+      <tags>
+        <tag>Machine learning</tag>
+      </tags>
+  </entry>
 </search>
